@@ -1,4 +1,5 @@
 import streamlit as st
+from PIL import Image
 import re
 import html
 import pandas as pd
@@ -66,18 +67,19 @@ col1, col2, col3, col4 = st.columns(4)
 
 # Platform selection buttons
 def social_button(icon_path, label, key):
-    st.image(icon_path, width=50)
+    icon = Image.open(icon_path)
+    st.image(icon, width=50)
     if st.button(label, key=key):
         st.session_state.platform_selected = label.lower()
 
 with col1:
-    social_button("C:\\Users\\User\\Downloads\\Youtube.jpeg", "YouTube", "yt")
+    social_button("images/Youtube.jpeg", "YouTube", "yt")
 with col2:
-    social_button("C:\\Users\\User\\Downloads\\Instagram.jpeg", "Instagram", "ig")
+    social_button("images/Instagram.jpeg", "Instagram", "ig")
 with col3:
-    social_button("C:\\Users\\User\\Downloads\\Twitter.jpeg", "Twitter", "tw")
+    social_button("images/Twitter.jpeg", "Twitter", "tw")
 with col4:
-    social_button("C:\\Users\\User\\Downloads\\Facebook.jpeg", "Facebook", "fb")
+    social_button("images/Facebook.jpeg", "Facebook", "fb")
 
 # Session state for inputs
 if "platform_selected" not in st.session_state:
