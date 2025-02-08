@@ -1,0 +1,6 @@
+streamlit
+matplotlib
+pandas
+googletrans==4.0.0-rc1
+google-api-python-client
+textblob
