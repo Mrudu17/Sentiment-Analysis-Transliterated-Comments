@@ -112,13 +112,13 @@ st.markdown("""
             <strong>S.K.Mruduvani</strong><br>
             GitHub <a href="https://github.com/Mrudu17" target="_blank" style="color: #0366d6; font-size: 18px; text-decoration: none;">🔗</a><br>
             LinkedIn <a href="https://www.linkedin.com/in/s-k-mruduvani" target="_blank" style="color: #0077b5; font-size: 18px; text-decoration: none;">🔗</a><br><br>
-            
             <strong>Kataru Shreya</strong><br>
             GitHub <a href="https://github.com/KataruShreya" target="_blank" style="color: #0366d6; font-size: 18px; text-decoration: none;">🔗</a><br>
-            LinkedIn <a href="https://www.linkedin.com/in/shreyakataru" target="_blank" style="color: #0077b5; font-size: 18px; text-decoration: none;">🔗</a>
+            LinkedIn <a href="https://www.linkedin.com/in/shreyakataru" target="_blank" style="color: #0077b5; font-size: 18px; text-decoration: none;">🔗</a><br>
         </p>
     </div>
 """, unsafe_allow_html=True)
+
 
 col1, col2, col3, col4 = st.columns(4)
 
