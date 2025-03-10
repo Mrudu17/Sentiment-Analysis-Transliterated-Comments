@@ -1,4 +1,3 @@
-from PIL import Image
 import streamlit as st
 import re
 import html
@@ -9,7 +8,6 @@ from textblob import TextBlob
 import http.client
 import json
 import requests
-import os
 
 # Function to extract video ID from URL
 def extract_video_id(url):
@@ -50,7 +48,7 @@ def fetch_youtube_comments(video_id, api_key):
 def fetch_tweets(tweet_id, api_key):
     conn = http.client.HTTPSConnection("twitter-api45.p.rapidapi.com")
     headers = {
-        'x-rapidapi-key': api_key,
+        'x-rapidapi-key': "68acfccf96msh43988501728891ep174caejsna4f16e4418ad",
         'x-rapidapi-host': "twitter-api45.p.rapidapi.com"
     }
     conn.request("GET", f"/latest_replies.php?id={tweet_id}", headers=headers)
@@ -73,21 +71,30 @@ def transliterate_and_translate(text):
     if not text.strip():
         return None
     try:
-        rapidapi_key = os.getenv('RAPIDAPI_KEY')  # Use environment variables to store the key
+        # Replace with your RapidAPI key and endpoint
+        rapidapi_key = "68acfccf96msh43988501728891ep174caejsna4f16e4418ad"  # Replace with your actual RapidAPI key
         url = "https://translation-api4.p.rapidapi.com/translation"
-        querystring = {"from": "auto", "to": "en", "query": text}
+
+        # Querystring for target language (Translate text to English)
+        querystring = {"from": "auto", "to": "en", "query": text}  # Translate text to English
         
         headers = {
             "x-rapidapi-key": rapidapi_key,
             "x-rapidapi-host": "translation-api4.p.rapidapi.com"
         }
 
+        # Make the request to RapidAPI
         response = requests.get(url, headers=headers, params=querystring)
 
         if response.status_code == 200:
-            translation = response.json()
-            return translation.get('translation', 'No translation found')
-        return None
+            try:
+                # Parse the response JSON
+                translation = response.json()
+                return translation.get('translation', 'No translation found')  # Use 'translation' as the key
+            except Exception as e:
+                return None
+        else:
+            return None
     except Exception as e:
         return None
 
@@ -98,39 +105,48 @@ st.markdown("<h4 style='text-align: center;'>Select a platform to analyze commen
 
 col1, col2, col3, col4 = st.columns(4)
 
-# Social Button Function
-def social_button(icon_path, label, key):
-    st.image(icon_path, width=50)
+def social_button(icon_url, label, key):
+    st.image(icon_url, width=50)
+    
+    # Updated button style with grey background and black text on hover
     button_style = """
     <style>
     .stButton > button {{
-        background-color: #B0B0B0;
-        color: black;
+        background-color: #B0B0B0; /* Professional grey */
+        color: black; /* Black text color */
         border: none;
         border-radius: 5px;
         font-size: 14px;
         font-weight: bold;
     }}
     .stButton > button:hover {{
-        background-color: #B0B0B0;
-        color: black;
+        background-color: #B0B0B0; /* Keep grey background on hover */
+        color: black; /* Keep text color black on hover */
     }}
     </style>
     """
     st.markdown(button_style, unsafe_allow_html=True)
+    
     if st.button(label, key=key):
-        st.session_state.platform_selected = key
+        st.session_state.platform_selected = key  # Store the key (not label)
+
+
+# Use raw URLs to GitHub images
+github_base_url = "https://raw.githubusercontent.com/Mrudu17/Sentiment-Analysis-Transliterated-Comments/main/images/"
 
 with col1:
-    social_button("images/Youtube.jpeg", "YouTube", "youtube")
+    social_button(f"images/Youtube.jpeg", "YouTube", "youtube")
 with col2:
-    social_button("images/Twitter.jpeg", "⠀⠀X⠀⠀", "twitter")
+    social_button(f"images/Twitter.jpeg", "⠀⠀X⠀⠀", "twitter")  # The key is still "twitter"
 with col3:
-    social_button("images/Instagram.jpeg", "Instagram", "ig")
+    social_button(f"images/Instagram.jpeg", "Instagram", "ig")
 with col4:
-    social_button("images/Facebook.jpeg", "Facebook", "fb")
+    social_button(f"images/Facebook.jpeg", "Facebook", "fb")
 
-# Function to run the sentiment analysis
+if "platform_selected" not in st.session_state:
+    st.session_state.platform_selected = None
+
+# Common function to run analysis
 def run_analysis(comments):
     total_comments = len(comments)
     sentiment_counts = {'positive': 0, 'negative': 0, 'neutral': 0}
@@ -154,24 +170,22 @@ def run_analysis(comments):
     st.success("Analysis complete!")
     st.dataframe(df)
     
-    # Check for empty or invalid data before plotting
-    if sum(sentiment_counts.values()) == 0:
-        st.warning("No comments analyzed, cannot display sentiment distribution.")
-    else:
-        fig, ax = plt.subplots(figsize=(2, 2))
-        ax.pie(
-            sentiment_counts.values(),
-            labels=sentiment_counts.keys(),
-            autopct='%1.1f%%',
-            colors=['green', 'red', 'gray'],
-            textprops={'color': 'white'}
-        )
-        ax.set_title("Sentiment Distribution", fontsize=8, fontweight='bold', color='white')
-        fig.patch.set_facecolor("#0E1117")
-        ax.set_facecolor("#0E1117")
-        st.pyplot(fig)
+    csv = df.to_csv(index=False).encode('utf-8')
+    st.download_button("Download CSV", data=csv, file_name="sentiment_analysis.csv", mime="text/csv")
     
-    # Display overall sentiment
+    fig, ax = plt.subplots(figsize=(2, 2))
+    ax.pie(
+        sentiment_counts.values(), 
+        labels=sentiment_counts.keys(), 
+        autopct='%1.1f%%', 
+        colors=['green', 'red', 'gray'],
+        textprops={'color': 'white'}
+    )
+    ax.set_title("Sentiment Distribution", fontsize=8, fontweight='bold', color='white')
+    fig.patch.set_facecolor("#0E1117")
+    ax.set_facecolor("#0E1117")
+    st.pyplot(fig)
+    
     most_common_sentiment = max(sentiment_counts, key=sentiment_counts.get)
     sentiment_percentage = (sentiment_counts[most_common_sentiment] / sum(sentiment_counts.values())) * 100
     
@@ -182,26 +196,20 @@ def run_analysis(comments):
     </div>
     """, unsafe_allow_html=True)
 
-# Make sure the platform is selected before running the analysis
-# Ensure 'platform_selected' is initialized
-if "platform_selected" not in st.session_state:
-    st.session_state.platform_selected = None  # Initialize with default value (None)
-
-# Rest of the code for button actions
 if st.session_state.platform_selected:
     if st.session_state.platform_selected == "youtube":
         youtube_url = st.text_input("Enter the YouTube video URL:")
         if st.button("Analyze"):
             video_id = extract_video_id(youtube_url)
             if video_id:
-                run_analysis(fetch_youtube_comments(video_id, "YOUR_API_KEY"))
+                run_analysis(fetch_youtube_comments(video_id, "AIzaSyBjkB-c3lvG0dSyoQ0Byij5FLrhaewIilg"))
             else:
                 st.error("Invalid YouTube URL!")
     elif st.session_state.platform_selected == "twitter":
         tweet_url = st.text_input("Enter the Tweet URL:")
         if st.button("Analyze"):
             tweet_id = extract_tweet_id(tweet_url)
-            run_analysis(fetch_tweets(tweet_id, "YOUR_API_KEY"))
+            run_analysis(fetch_tweets(tweet_id, "68acfccf96msh43988501728891ep174caejsna4f16e4418ad"))
     else:
-        st.warning("🚀 Check back later! Support for this platform is coming soon.")
+          st.warning("🚀 Check back later! Support for this platform is coming soon.")
 
