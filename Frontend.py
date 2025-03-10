@@ -179,19 +179,25 @@ def run_analysis(comments):
     """, unsafe_allow_html=True)
 
 # Make sure the platform is selected before running the analysis
+# Ensure 'platform_selected' is initialized
+if "platform_selected" not in st.session_state:
+    st.session_state.platform_selected = None  # Initialize with default value (None)
+
+# Rest of the code for button actions
 if st.session_state.platform_selected:
     if st.session_state.platform_selected == "youtube":
         youtube_url = st.text_input("Enter the YouTube video URL:")
         if st.button("Analyze"):
             video_id = extract_video_id(youtube_url)
             if video_id:
-                run_analysis(fetch_youtube_comments(video_id, "YOUR_YOUTUBE_API_KEY"))
+                run_analysis(fetch_youtube_comments(video_id, "YOUR_API_KEY"))
             else:
                 st.error("Invalid YouTube URL!")
     elif st.session_state.platform_selected == "twitter":
         tweet_url = st.text_input("Enter the Tweet URL:")
         if st.button("Analyze"):
             tweet_id = extract_tweet_id(tweet_url)
-            run_analysis(fetch_tweets(tweet_id, "YOUR_TWITTER_API_KEY"))
+            run_analysis(fetch_tweets(tweet_id, "YOUR_API_KEY"))
     else:
         st.warning("🚀 Check back later! Support for this platform is coming soon.")
+
