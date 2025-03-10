@@ -154,20 +154,24 @@ def run_analysis(comments):
     st.success("Analysis complete!")
     st.dataframe(df)
     
-    # Sentiment distribution pie chart
-    fig, ax = plt.subplots(figsize=(2, 2))
-    ax.pie(
-        sentiment_counts.values(), 
-        labels=sentiment_counts.keys(), 
-        autopct='%1.1f%%', 
-        colors=['green', 'red', 'gray'],
-        textprops={'color': 'white'}
-    )
-    ax.set_title("Sentiment Distribution", fontsize=8, fontweight='bold', color='white')
-    fig.patch.set_facecolor("#0E1117")
-    ax.set_facecolor("#0E1117")
-    st.pyplot(fig)
+    # Check for empty or invalid data before plotting
+    if sum(sentiment_counts.values()) == 0:
+        st.warning("No comments analyzed, cannot display sentiment distribution.")
+    else:
+        fig, ax = plt.subplots(figsize=(2, 2))
+        ax.pie(
+            sentiment_counts.values(),
+            labels=sentiment_counts.keys(),
+            autopct='%1.1f%%',
+            colors=['green', 'red', 'gray'],
+            textprops={'color': 'white'}
+        )
+        ax.set_title("Sentiment Distribution", fontsize=8, fontweight='bold', color='white')
+        fig.patch.set_facecolor("#0E1117")
+        ax.set_facecolor("#0E1117")
+        st.pyplot(fig)
     
+    # Display overall sentiment
     most_common_sentiment = max(sentiment_counts, key=sentiment_counts.get)
     sentiment_percentage = (sentiment_counts[most_common_sentiment] / sum(sentiment_counts.values())) * 100
     
