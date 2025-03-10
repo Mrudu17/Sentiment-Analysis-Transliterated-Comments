@@ -108,7 +108,7 @@ st.markdown("""
     <div style="text-align: center;">
         <h3 style="color: white; font-size: 20px; font-weight: bold;">Project By:</h3>
         <p style="color: white; font-size: 16px;">
-            - S.K.Mruduvani - https://github.com/Mrudu17 <br>
+            - S.K.Mruduvani - ('[My GitHub Profile](https://github.com/Mrudu17)') <br>
             - Kataru Shreya - https://github.com/KataruShreya
         </p>
     </div>
