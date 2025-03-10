@@ -110,14 +110,23 @@ st.markdown("""
         <h3 style="color: white; font-size: 18px; font-weight: bold; text-align: center;">Project By:</h3>
         <p style="color: white; font-size: 14px; line-height: 1.6;">
             <strong>S.K.Mruduvani</strong><br>
-            GitHub <a href="https://github.com/Mrudu17" target="_blank" style="color: #0366d6; font-size: 18px; text-decoration: none;">🔗</a><br>
-            LinkedIn <a href="https://www.linkedin.com/in/s-k-mruduvani" target="_blank" style="color: #0077b5; font-size: 18px; text-decoration: none;">🔗</a><br><br>
+            GitHub <a href="https://github.com/Mrudu17" target="_blank">
+                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" width="18" height="18" style="vertical-align: middle;">
+            </a><br>
+            LinkedIn <a href="https://www.linkedin.com/in/s-k-mruduvani" target="_blank">
+                <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="18" height="18" style="vertical-align: middle;">
+            </a><br><br>
             <strong>Kataru Shreya</strong><br>
-            GitHub <a href="https://github.com/KataruShreya" target="_blank" style="color: #0366d6; font-size: 18px; text-decoration: none;">🔗</a><br>
-            LinkedIn <a href="https://www.linkedin.com/in/shreyakataru" target="_blank" style="color: #0077b5; font-size: 18px; text-decoration: none;">🔗</a>
+            GitHub <a href="https://github.com/KataruShreya" target="_blank">
+                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" width="18" height="18" style="vertical-align: middle;">
+            </a><br>
+            LinkedIn <a href="https://www.linkedin.com/in/shreyakataru" target="_blank">
+                <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="18" height="18" style="vertical-align: middle;">
+            </a><br>
         </p>
     </div>
 """, unsafe_allow_html=True)
+
 
 
 col1, col2, col3, col4 = st.columns(4)
