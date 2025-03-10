@@ -120,7 +120,6 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-
 col1, col2, col3, col4 = st.columns(4)
 
 def social_button(icon_url, label, key):
