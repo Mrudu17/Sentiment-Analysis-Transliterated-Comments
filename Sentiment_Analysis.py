@@ -114,8 +114,8 @@ st.markdown("""
         </p>
         <h4 style="color: white; font-size: 16px;">Connect with us on LinkedIn:</h4>
         <p style="color: white; font-size: 14px;">
-            - <a href="https://www.linkedin.com/in/mruduvani/" target="_blank" style="color: #0077b5; font-weight: bold;">S.K.Mruduvani</a> <br>
-            - <a href="https://www.linkedin.com/in/katarushreya/" target="_blank" style="color: #0077b5; font-weight: bold;">Kataru Shreya</a>
+            - <a href="www.linkedin.com/in/s-k-mruduvani" target="_blank" style="color: #0077b5; font-weight: bold;">S.K.Mruduvani</a> <br>
+            - <a href="https://www.linkedin.com/in/shreyakataru" target="_blank" style="color: #0077b5; font-weight: bold;">Kataru Shreya</a>
         </p>
     </div>
 """, unsafe_allow_html=True)
