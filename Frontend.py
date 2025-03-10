@@ -106,10 +106,10 @@ st.markdown("<h4 style='text-align: center;'>Select a platform to analyze commen
 # Display Team Information
 st.markdown("""
     <div style="text-align: center;">
-        <h3 style="color: white; font-size: 20px; font-weight: bold;">Project Contributors:</h3>
+        <h3 style="color: white; font-size: 20px; font-weight: bold;">Project By:</h3>
         <p style="color: white; font-size: 16px;">
-            - S.K.Mruduvani ((https://github.com/Mrudu17)) <br>
-            - Kataru Shreya ((https://github.com/KataruShreya))
+            - S.K.Mruduvani - https://github.com/Mrudu17 <br>
+            - Kataru Shreya - https://github.com/KataruShreya
         </p>
     </div>
 """, unsafe_allow_html=True)
