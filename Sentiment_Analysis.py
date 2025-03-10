@@ -106,8 +106,8 @@ st.markdown("<h4 style='text-align: center;'>Select a platform to analyze commen
 # Display Team Information
 # Display Team Information at the bottom-right of the screen with link symbols
 st.markdown("""
-    <div style="position: fixed; bottom: 10px; right: 10px; background-color: rgba(0, 0, 0, 0.5); padding: 10px; border-radius: 8px;">
-        <h3 style="color: white; font-size: 18px; font-weight: bold;">Project By:</h3>
+    <div style="position: fixed; bottom: 10px; right: 10px; background-color: rgba(0, 0, 0, 0.5); padding: 10px; border-radius: 8px; width: auto;">
+        <h3 style="color: white; font-size: 18px; font-weight: bold; text-align: center;">Project By:</h3>
         <p style="color: white; font-size: 14px;">
             <strong>S.K.Mruduvani</strong> <br>
             GitHub <a href="https://github.com/Mrudu17" target="_blank" style="color: #0366d6; font-size: 18px; text-decoration: none;">🔗</a> <br>
