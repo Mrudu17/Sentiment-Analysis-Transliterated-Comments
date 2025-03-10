@@ -108,8 +108,8 @@ st.markdown("""
     <div style="text-align: center;">
         <h3 style="color: white; font-size: 20px; font-weight: bold;">Project Contributors:</h3>
         <p style="color: white; font-size: 16px;">
-            - **Your Name** ([GitHub Profile Link](https://github.com/yourusername)) <br>
-            - **Your Friend's Name** ([GitHub Profile Link](https://github.com/friendsusername))
+            - S.K.Mruduvani ([GitHub Profile Link](https://github.com/Mrudu17)) <br>
+            - Kataru Shreya ([GitHub Profile Link](https://github.com/KataruShreya))
         </p>
     </div>
 """, unsafe_allow_html=True)
