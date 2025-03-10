@@ -103,6 +103,17 @@ st.markdown("<h1 style='text-align: center;'>Sentiment Analysis of Transliterate
 
 st.markdown("<h4 style='text-align: center;'>Select a platform to analyze comments</h4>", unsafe_allow_html=True)
 
+# Display Team Information
+st.markdown("""
+    <div style="text-align: center;">
+        <h3 style="color: white; font-size: 20px; font-weight: bold;">Project Contributors:</h3>
+        <p style="color: white; font-size: 16px;">
+            - **Your Name** ([GitHub Profile Link](https://github.com/yourusername)) <br>
+            - **Your Friend's Name** ([GitHub Profile Link](https://github.com/friendsusername))
+        </p>
+    </div>
+""", unsafe_allow_html=True)
+
 col1, col2, col3, col4 = st.columns(4)
 
 def social_button(icon_url, label, key):
@@ -212,4 +223,3 @@ if st.session_state.platform_selected:
             run_analysis(fetch_tweets(tweet_id, "68acfccf96msh43988501728891ep174caejsna4f16e4418ad"))
     else:
           st.warning("🚀 Check back later! Support for this platform is coming soon.")
-
