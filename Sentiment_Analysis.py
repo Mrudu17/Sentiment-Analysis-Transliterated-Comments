@@ -108,17 +108,18 @@ st.markdown("<h4 style='text-align: center;'>Select a platform to analyze commen
 st.markdown("""
     <div style="position: fixed; bottom: 10px; right: 10px; background-color: rgba(0, 0, 0, 0.5); padding: 10px; border-radius: 8px; width: auto;">
         <h3 style="color: white; font-size: 18px; font-weight: bold; text-align: center;">Project By:</h3>
-        <p style="color: white; font-size: 14px;">
-            <strong>S.K.Mruduvani</strong> <br>
-            GitHub <a href="https://github.com/Mrudu17" target="_blank" style="color: #0366d6; font-size: 18px; text-decoration: none;">🔗</a> <br>
-            LinkedIn <a href="https://www.linkedin.com/in/s-k-mruduvani" target="_blank" style="color: #0077b5; font-size: 18px; text-decoration: none;">🔗</a> <br><br>
+        <p style="color: white; font-size: 14px; line-height: 1.6;">
+            <strong>S.K.Mruduvani</strong><br>
+            GitHub <a href="https://github.com/Mrudu17" target="_blank" style="color: #0366d6; font-size: 18px; text-decoration: none;">🔗</a><br>
+            LinkedIn <a href="https://www.linkedin.com/in/s-k-mruduvani" target="_blank" style="color: #0077b5; font-size: 18px; text-decoration: none;">🔗</a><br><br>
             
-            <strong>Kataru Shreya</strong> <br>
-            GitHub <a href="https://github.com/KataruShreya" target="_blank" style="color: #0366d6; font-size: 18px; text-decoration: none;">🔗</a> <br>
+            <strong>Kataru Shreya</strong><br>
+            GitHub <a href="https://github.com/KataruShreya" target="_blank" style="color: #0366d6; font-size: 18px; text-decoration: none;">🔗</a><br>
             LinkedIn <a href="https://www.linkedin.com/in/shreyakataru" target="_blank" style="color: #0077b5; font-size: 18px; text-decoration: none;">🔗</a>
         </p>
     </div>
 """, unsafe_allow_html=True)
+
 
 col1, col2, col3, col4 = st.columns(4)
 
