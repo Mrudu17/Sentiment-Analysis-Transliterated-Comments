@@ -104,18 +104,12 @@ st.markdown("<h1 style='text-align: center;'>Sentiment Analysis of Transliterate
 st.markdown("<h4 style='text-align: center;'>Select a platform to analyze comments</h4>", unsafe_allow_html=True)
 
 # Display Team Information
-# Display Team Information at the bottom-right of the screen
 st.markdown("""
-    <div style="position: fixed; bottom: 10px; right: 10px; background-color: rgba(0, 0, 0, 0.5); padding: 10px; border-radius: 8px;">
-        <h3 style="color: white; font-size: 18px; font-weight: bold;">Project By:</h3>
-        <p style="color: white; font-size: 14px;">
-            - <a href="https://github.com/Mrudu17" target="_blank" style="color: #0366d6; font-weight: bold;">S.K.Mruduvani</a> <br>
-            - <a href="https://github.com/KataruShreya" target="_blank" style="color: #0366d6; font-weight: bold;">Kataru Shreya</a>
-        </p>
-        <h4 style="color: white; font-size: 16px;">Connect with us on LinkedIn:</h4>
-        <p style="color: white; font-size: 14px;">
-            - <a href="https://www.linkedin.com/in/s-k-mruduvani" target="_blank" style="color: #0077b5; font-weight: bold;">S.K.Mruduvani</a> <br>
-            - <a href="https://www.linkedin.com/in/shreyakataru" target="_blank" style="color: #0077b5; font-weight: bold;">Kataru Shreya</a>
+    <div style="text-align: center;">
+        <h3 style="color: white; font-size: 20px; font-weight: bold;">Project By:</h3>
+        <p style="color: white; font-size: 16px;">
+            - S.K.Mruduvani - <a href="https://github.com/Mrudu17" target="_blank" style="color: white; text-decoration: none; font-weight: bold;">My GitHub Profile</a> <br>
+            - Kataru Shreya - <a href="https://github.com/KataruShreya" target="_blank" style="color: white; text-decoration: none; font-weight: bold;">GitHub Profile</a>
         </p>
     </div>
 """, unsafe_allow_html=True)
