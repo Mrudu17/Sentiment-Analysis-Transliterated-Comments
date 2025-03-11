@@ -96,7 +96,6 @@ def transliterate_and_translate(text):
         
         if response.status_code == 200:
             translation = response.json()
-            st.write(f"Translation API Response: {translation}")
             return translation.get('translation', None)
         else:
             st.error(f"Translation API failed with status code: {response.status_code}")
@@ -184,13 +183,23 @@ def run_analysis(comments):
             })
         progress_bar.progress(min(int(((i + 1) / total_comments) * 100), 100))
     
+    # Create a DataFrame for the results
     df = pd.DataFrame(translations)
+    
+    # Display the table
     st.success("Analysis complete!")
     st.dataframe(df)
     
+    # Download CSV option
     csv = df.to_csv(index=False).encode('utf-8')
-    st.download_button("Download CSV", data=csv, file_name="sentiment_analysis.csv", mime="text/csv")
+    st.download_button(
+        label="Download CSV",
+        data=csv,
+        file_name="sentiment_analysis.csv",
+        mime="text/csv"
+    )
     
+    # Plot sentiment distribution
     if sum(sentiment_counts.values()) > 0:
         fig, ax = plt.subplots(figsize=(2, 2))
         ax.pie(
