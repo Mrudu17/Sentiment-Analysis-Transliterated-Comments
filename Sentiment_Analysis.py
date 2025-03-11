@@ -1,5 +1,6 @@
 import streamlit as st
 import re
+import html
 import pandas as pd
 import matplotlib.pyplot as plt
 from googleapiclient.discovery import build
@@ -19,17 +20,23 @@ def extract_tweet_id(url):
     return url.strip('/').split("/")[-1]
 
 # Preprocess Comment (Preserve Telugu and other non-ASCII characters)
+# Preprocess Comment (Preserve Telugu and other non-ASCII characters, remove URLs, Twitter handles, and emojis)
 def preprocess_comment(comment):
-    # Remove emojis and non-ASCII characters
-    comment = re.sub(r'[^\x00-\x7F]+', '', comment)  
+    # Remove emojis
+    comment = re.sub(r'[^\x00-\x7F]+', '', comment)  # This removes non-ASCII characters including emojis
+    
     # Remove URLs
     comment = re.sub(r'http[s]?://\S+|www\.\S+', '', comment)
+    
     # Remove HTML tags
     comment = re.sub(r'<.*?>', '', comment)
+    
     # Remove Twitter handles
     comment = re.sub(r'@\w+', '', comment)
+    
     # Remove extra spaces
     return ' '.join(comment.split())
+
 
 # Fetch YouTube comments
 def fetch_youtube_comments(video_id, api_key):
@@ -52,7 +59,7 @@ def fetch_youtube_comments(video_id, api_key):
 def fetch_tweets(tweet_id, api_key):
     conn = http.client.HTTPSConnection("twitter-api45.p.rapidapi.com")
     headers = {
-        'x-rapidapi-key': api_key,
+        'x-rapidapi-key': "68acfccf96msh43988501728891ep174caejsna4f16e4418ad",
         'x-rapidapi-host': "twitter-api45.p.rapidapi.com"
     }
     conn.request("GET", f"/latest_replies.php?id={tweet_id}", headers=headers)
@@ -78,20 +85,23 @@ def transliterate_and_translate(text):
         # Replace with your RapidAPI key and endpoint
         rapidapi_key = "68acfccf96msh43988501728891ep174caejsna4f16e4418ad"  # Replace with your actual RapidAPI key
         url = "https://translation-api4.p.rapidapi.com/translation"
-        
-        querystring = {"from": "auto", "to": "en", "query": text}
+
+        # Querystring for target language (Translate text to English)
+        querystring = {"from": "auto", "to": "en", "query": text}  # Translate text to English
         
         headers = {
             "x-rapidapi-key": rapidapi_key,
             "x-rapidapi-host": "translation-api4.p.rapidapi.com"
         }
 
+        # Make the request to RapidAPI
         response = requests.get(url, headers=headers, params=querystring)
 
         if response.status_code == 200:
             try:
+                # Parse the response JSON
                 translation = response.json()
-                return translation.get('translation', 'No translation found')
+                return translation.get('translation', 'No translation found')  # Use 'translation' as the key
             except Exception as e:
                 return None
         else:
@@ -101,9 +111,11 @@ def transliterate_and_translate(text):
 
 # Streamlit UI
 st.markdown("<h1 style='text-align: center;'>Sentiment Analysis of Transliterated Social Media Comments</h1>", unsafe_allow_html=True)
+
 st.markdown("<h4 style='text-align: center;'>Select a platform to analyze comments</h4>", unsafe_allow_html=True)
 
 # Display Team Information
+# Display Team Information at the bottom-right of the screen with link symbols
 st.markdown("""
     <div style="position: fixed; bottom: 10px; right: 10px; background-color: rgba(0, 0, 0, 0.5); padding: 10px; border-radius: 8px; width: auto;">
         <h3 style="color: white; font-size: 18px; font-weight: bold; text-align: center;">Project By:</h3>
@@ -126,11 +138,15 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
+
+
+
 col1, col2, col3, col4 = st.columns(4)
 
 def social_button(icon_url, label, key):
     st.image(icon_url, width=50)
     
+    # Updated button style with grey background and black text on hover
     button_style = """
     <style>
     .stButton > button {{
@@ -142,15 +158,16 @@ def social_button(icon_url, label, key):
         font-weight: bold;
     }}
     .stButton > button:hover {{
-        background-color: #B0B0B0; 
-        color: black;
+        background-color: #B0B0B0; /* Keep grey background on hover */
+        color: black; /* Keep text color black on hover */
     }}
     </style>
     """
     st.markdown(button_style, unsafe_allow_html=True)
     
     if st.button(label, key=key):
-        st.session_state.platform_selected = key
+        st.session_state.platform_selected = key  # Store the key (not label)
+
 
 # Use raw URLs to GitHub images
 github_base_url = "https://raw.githubusercontent.com/Mrudu17/Sentiment-Analysis-Transliterated-Comments/main/images/"
@@ -158,26 +175,35 @@ github_base_url = "https://raw.githubusercontent.com/Mrudu17/Sentiment-Analysis-
 with col1:
     social_button(f"images/Youtube.jpeg", "YouTube", "youtube")
 with col2:
-    social_button(f"images/Twitter.jpeg", "⠀⠀X⠀⠀", "twitter")
+    social_button(f"images/Twitter.jpeg", "⠀⠀X⠀⠀", "twitter")  # The key is still "twitter"
 with col3:
     social_button(f"images/Instagram.jpeg", "Instagram", "ig")
 with col4:
     social_button(f"images/Facebook.jpeg", "Facebook", "fb")
 
-# Initialize platform_selected in session_state if not set
 if "platform_selected" not in st.session_state:
     st.session_state.platform_selected = None
 
+# Common function to run analysis
 # Common function to run analysis
 def run_analysis(comments):
     total_comments = len(comments)
     sentiment_counts = {'positive': 0, 'negative': 0, 'neutral': 0}
     translations = []
     
+    # Track if any valid comments exist
+    valid_comments_count = 0
+    
     progress_bar = st.progress(0)
     
     for i, comment in enumerate(comments):
         preprocessed_comment = preprocess_comment(comment)
+        
+        # Skip empty or irrelevant comments after preprocessing
+        if not preprocessed_comment.strip():
+            continue  # Skip this iteration if the comment is empty or just whitespace
+        
+        # Translate and analyze valid comments only
         translated_text = transliterate_and_translate(preprocessed_comment)
         
         if translated_text:
@@ -189,7 +215,14 @@ def run_analysis(comments):
                 'Translated Comment': translated_text,
                 'Sentiment': sentiment['sentiment']
             })
+            valid_comments_count += 1
+        
         progress_bar.progress(min(int(((i + 1) / total_comments) * 100), 100))
+    
+    # Check if there were no valid comments to analyze
+    if valid_comments_count == 0:
+        st.warning("No valid comments found for analysis!")
+        return
     
     df = pd.DataFrame(translations)
     st.success("Analysis complete!")
@@ -224,19 +257,20 @@ def run_analysis(comments):
     </div>
     """, unsafe_allow_html=True)
 
+
 if st.session_state.platform_selected:
     if st.session_state.platform_selected == "youtube":
         youtube_url = st.text_input("Enter the YouTube video URL:")
         if st.button("Analyze"):
             video_id = extract_video_id(youtube_url)
             if video_id:
-                run_analysis(fetch_youtube_comments(video_id, "YOUR_YOUTUBE_API_KEY"))
+                run_analysis(fetch_youtube_comments(video_id, "AIzaSyBjkB-c3lvG0dSyoQ0Byij5FLrhaewIilg"))
             else:
                 st.error("Invalid YouTube URL!")
     elif st.session_state.platform_selected == "twitter":
         tweet_url = st.text_input("Enter the Tweet URL:")
         if st.button("Analyze"):
             tweet_id = extract_tweet_id(tweet_url)
-            run_analysis(fetch_tweets(tweet_id, "YOUR_TWITTER_API_KEY"))
+            run_analysis(fetch_tweets(tweet_id, "68acfccf96msh43988501728891ep174caejsna4f16e4418ad"))
     else:
-        st.warning("🚀 Check back later! Support for this platform is coming soon.")
+          st.warning("🚀 Check back later! Support for this platform is coming soon.")
