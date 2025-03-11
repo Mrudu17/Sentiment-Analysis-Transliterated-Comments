@@ -85,8 +85,8 @@ def transliterate_and_translate(text):
         st.warning("Empty text provided for translation.")
         return None
     try:
-        'x-rapidapi-key': "30f7094155msh395ad87ec9c40dbp138044jsnf7e95ad70bf8",
-        'x-rapidapi-host': "translation-api4.p.rapidapi.com"
+        rapidapi_key = "30f7094155msh395ad87ec9c40dbp138044jsnf7e95ad70bf8"  # Replace with your actual RapidAPI key
+        url = "https://translation-api4.p.rapidapi.com/translation"
         querystring = {"from": "auto", "to": "en", "query": text}
         headers = {
             "x-rapidapi-key": rapidapi_key,
