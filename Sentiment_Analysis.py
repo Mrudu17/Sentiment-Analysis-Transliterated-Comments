@@ -103,10 +103,28 @@ st.markdown("<h1 style='text-align: center;'>Sentiment Analysis of Transliterate
 
 st.markdown("<h4 style='text-align: center;'>Select a platform to analyze comments</h4>", unsafe_allow_html=True)
 
+# Display Team Information
+# Display Team Information at the bottom-right of the screen with link symbols
+st.markdown("""
+    <div style="position: fixed; bottom: 10px; right: 10px; background-color: rgba(0, 0, 0, 0.5); padding: 10px; border-radius: 8px; width: auto;">
+        <h3 style="color: white; font-size: 18px; font-weight: bold; text-align: center;">Project By:</h3>
+        <p style="color: white; font-size: 14px; line-height: 1.6;">
+            <strong>S.K.Mruduvani</strong><br>
+            GitHub <a href="https://github.com/Mrudu17" target="_blank" style="color: #0366d6; font-size: 18px; text-decoration: none;">🔗</a><br>
+            LinkedIn <a href="https://www.linkedin.com/in/s-k-mruduvani" target="_blank" style="color: #0077b5; font-size: 18px; text-decoration: none;">🔗</a><br><br>
+            
+            <strong>Kataru Shreya</strong><br>
+            GitHub <a href="https://github.com/KataruShreya" target="_blank" style="color: #0366d6; font-size: 18px; text-decoration: none;">🔗</a><br>
+            LinkedIn <a href="https://www.linkedin.com/in/shreyakataru" target="_blank" style="color: #0077b5; font-size: 18px; text-decoration: none;">🔗</a>
+        </p>
+    </div>
+""", unsafe_allow_html=True)
+
+
 col1, col2, col3, col4 = st.columns(4)
 
-def social_button(icon_path, label, key):
-    st.image(icon_path, width=50)
+def social_button(icon_url, label, key):
+    st.image(icon_url, width=50)
     
     # Updated button style with grey background and black text on hover
     button_style = """
@@ -131,14 +149,17 @@ def social_button(icon_path, label, key):
         st.session_state.platform_selected = key  # Store the key (not label)
 
 
+# Use raw URLs to GitHub images
+github_base_url = "https://raw.githubusercontent.com/Mrudu17/Sentiment-Analysis-Transliterated-Comments/main/images/"
+
 with col1:
-    social_button("C:\\Users\\User\\Downloads\\Youtube.jpeg", "YouTube", "youtube")
+    social_button(f"images/Youtube.jpeg", "YouTube", "youtube")
 with col2:
-    social_button("C:\\Users\\User\\Downloads\\X.jpeg", "⠀⠀X⠀⠀", "twitter")  # The key is still "twitter"
+    social_button(f"images/Twitter.jpeg", "⠀⠀X⠀⠀", "twitter")  # The key is still "twitter"
 with col3:
-    social_button("C:\\Users\\User\\Downloads\\Instagram.jpeg", "Instagram", "ig")
+    social_button(f"images/Instagram.jpeg", "Instagram", "ig")
 with col4:
-    social_button("C:\\Users\\User\\Downloads\\Facebook.jpeg", "Facebook", "fb")
+    social_button(f"images/Facebook.jpeg", "Facebook", "fb")
 
 if "platform_selected" not in st.session_state:
     st.session_state.platform_selected = None
@@ -208,4 +229,4 @@ if st.session_state.platform_selected:
             tweet_id = extract_tweet_id(tweet_url)
             run_analysis(fetch_tweets(tweet_id, "68acfccf96msh43988501728891ep174caejsna4f16e4418ad"))
     else:
-        st.warning("🚀 Check back later! Support for this platform is coming soon.")
+          st.warning("🚀 Check back later! Support for this platform is coming soon.")
