@@ -174,6 +174,7 @@ if "platform_selected" not in st.session_state:
     st.session_state.platform_selected = None
 
 # Common function to run analysis
+# Common function to run analysis
 def run_analysis(comments):
     total_comments = len(comments)
     sentiment_counts = {'positive': 0, 'negative': 0, 'neutral': 0}
@@ -182,12 +183,15 @@ def run_analysis(comments):
     progress_bar = st.progress(0)
     
     for i, comment in enumerate(comments):
-        translated_text = transliterate_and_translate(preprocess_comment(comment))
+        preprocessed_comment = preprocess_comment(comment)
+        translated_text = transliterate_and_translate(preprocessed_comment)
+        
         if translated_text:
             sentiment = analyze_sentiment(translated_text)
             sentiment_counts[sentiment['sentiment']] += 1
             translations.append({
                 'Original Comment': comment,
+                'Preprocessed Comment': preprocessed_comment,  # Added this line
                 'Translated Comment': translated_text,
                 'Sentiment': sentiment['sentiment']
             })
@@ -197,9 +201,11 @@ def run_analysis(comments):
     st.success("Analysis complete!")
     st.dataframe(df)
     
+    # CSV download with the new 'Preprocessed Comment' column
     csv = df.to_csv(index=False).encode('utf-8')
     st.download_button("Download CSV", data=csv, file_name="sentiment_analysis.csv", mime="text/csv")
     
+    # Plot sentiment distribution
     fig, ax = plt.subplots(figsize=(2, 2))
     ax.pie(
         sentiment_counts.values(), 
@@ -213,6 +219,7 @@ def run_analysis(comments):
     ax.set_facecolor("#0E1117")
     st.pyplot(fig)
     
+    # Display overall sentiment
     most_common_sentiment = max(sentiment_counts, key=sentiment_counts.get)
     sentiment_percentage = (sentiment_counts[most_common_sentiment] / sum(sentiment_counts.values())) * 100
     
