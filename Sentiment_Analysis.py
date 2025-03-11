@@ -191,19 +191,10 @@ def run_analysis(comments):
     sentiment_counts = {'positive': 0, 'negative': 0, 'neutral': 0}
     translations = []
     
-    # Track if any valid comments exist
-    valid_comments_count = 0
-    
     progress_bar = st.progress(0)
     
     for i, comment in enumerate(comments):
         preprocessed_comment = preprocess_comment(comment)
-        
-        # Skip empty or irrelevant comments after preprocessing
-        if not preprocessed_comment.strip():
-            continue  # Skip this iteration if the comment is empty or just whitespace
-        
-        # Translate and analyze valid comments only
         translated_text = transliterate_and_translate(preprocessed_comment)
         
         if translated_text:
@@ -215,14 +206,7 @@ def run_analysis(comments):
                 'Translated Comment': translated_text,
                 'Sentiment': sentiment['sentiment']
             })
-            valid_comments_count += 1
-        
         progress_bar.progress(min(int(((i + 1) / total_comments) * 100), 100))
-    
-    # Check if there were no valid comments to analyze
-    if valid_comments_count == 0:
-        st.warning("No valid comments found for analysis!")
-        return
     
     df = pd.DataFrame(translations)
     st.success("Analysis complete!")
@@ -256,7 +240,6 @@ def run_analysis(comments):
         <h2 style="color: white; font-size: 25px;">{most_common_sentiment.capitalize()} ({sentiment_percentage:.2f}%)</h2>
     </div>
     """, unsafe_allow_html=True)
-
 
 if st.session_state.platform_selected:
     if st.session_state.platform_selected == "youtube":
