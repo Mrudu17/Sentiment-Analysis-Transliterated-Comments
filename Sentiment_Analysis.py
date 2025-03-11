@@ -195,19 +195,30 @@ def run_analysis(comments):
     
     for i, comment in enumerate(comments):
         preprocessed_comment = preprocess_comment(comment)
+        
+        # Check if preprocessed comment is not empty before proceeding
+        if not preprocessed_comment.strip():
+            continue  # Skip empty comments
+
         translated_text = transliterate_and_translate(preprocessed_comment)
         
+        # Check if translated_text is valid
         if translated_text:
             sentiment = analyze_sentiment(translated_text)
             sentiment_counts[sentiment['sentiment']] += 1
             translations.append({
                 'Original Comment': comment,
-                'Preprocessed Comment': preprocessed_comment,  # Added this line
+                'Preprocessed Comment': preprocessed_comment,
                 'Translated Comment': translated_text,
                 'Sentiment': sentiment['sentiment']
             })
         progress_bar.progress(min(int(((i + 1) / total_comments) * 100), 100))
     
+    # Check if there are no valid translations to avoid errors when creating a DataFrame
+    if len(translations) == 0:
+        st.error("No valid comments to analyze!")
+        return
+
     df = pd.DataFrame(translations)
     st.success("Analysis complete!")
     st.dataframe(df)
