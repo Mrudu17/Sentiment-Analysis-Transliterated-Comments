@@ -191,10 +191,19 @@ def run_analysis(comments):
     sentiment_counts = {'positive': 0, 'negative': 0, 'neutral': 0}
     translations = []
     
+    # Track if any valid comments exist
+    valid_comments_count = 0
+    
     progress_bar = st.progress(0)
     
     for i, comment in enumerate(comments):
         preprocessed_comment = preprocess_comment(comment)
+        
+        # Skip empty or irrelevant comments after preprocessing
+        if not preprocessed_comment.strip():
+            continue  # Skip this iteration if the comment is empty or just whitespace
+        
+        # Translate and analyze valid comments only
         translated_text = transliterate_and_translate(preprocessed_comment)
         
         if translated_text:
@@ -206,7 +215,14 @@ def run_analysis(comments):
                 'Translated Comment': translated_text,
                 'Sentiment': sentiment['sentiment']
             })
+            valid_comments_count += 1
+        
         progress_bar.progress(min(int(((i + 1) / total_comments) * 100), 100))
+    
+    # Check if there were no valid comments to analyze
+    if valid_comments_count == 0:
+        st.warning("No valid comments found for analysis!")
+        return
     
     df = pd.DataFrame(translations)
     st.success("Analysis complete!")
@@ -216,30 +232,41 @@ def run_analysis(comments):
     csv = df.to_csv(index=False).encode('utf-8')
     st.download_button("Download CSV", data=csv, file_name="sentiment_analysis.csv", mime="text/csv")
     
-    # Plot sentiment distribution
+    # Plot sentiment distribution, handle zero values in sentiment counts
     fig, ax = plt.subplots(figsize=(2, 2))
-    ax.pie(
-        sentiment_counts.values(), 
-        labels=sentiment_counts.keys(), 
-        autopct='%1.1f%%', 
-        colors=['green', 'red', 'gray'],
-        textprops={'color': 'white'}
-    )
-    ax.set_title("Sentiment Distribution", fontsize=8, fontweight='bold', color='white')
-    fig.patch.set_facecolor("#0E1117")
-    ax.set_facecolor("#0E1117")
-    st.pyplot(fig)
+    
+    # Remove categories with zero count to avoid plotting them
+    non_zero_sentiments = {k: v for k, v in sentiment_counts.items() if v > 0}
+    
+    if non_zero_sentiments:  # Ensure there's at least one sentiment to plot
+        ax.pie(
+            non_zero_sentiments.values(),
+            labels=non_zero_sentiments.keys(),
+            autopct='%1.1f%%',
+            colors=['green', 'red', 'gray'][:len(non_zero_sentiments)],  # Ensure the number of colors matches
+            textprops={'color': 'white'}
+        )
+        ax.set_title("Sentiment Distribution", fontsize=8, fontweight='bold', color='white')
+        fig.patch.set_facecolor("#0E1117")
+        ax.set_facecolor("#0E1117")
+        st.pyplot(fig)
+    else:
+        st.warning("No sentiments to plot (all sentiments are zero).")
     
     # Display overall sentiment
-    most_common_sentiment = max(sentiment_counts, key=sentiment_counts.get)
-    sentiment_percentage = (sentiment_counts[most_common_sentiment] / sum(sentiment_counts.values())) * 100
+    most_common_sentiment = max(non_zero_sentiments, key=non_zero_sentiments.get, default=None)
     
-    st.markdown(f"""
-    <div style='text-align: center;'>
-        <h2 style="color: white; font-size: 30px; font-weight: bold;">Overall Sentiment</h2>
-        <h2 style="color: white; font-size: 25px;">{most_common_sentiment.capitalize()} ({sentiment_percentage:.2f}%)</h2>
-    </div>
-    """, unsafe_allow_html=True)
+    if most_common_sentiment:
+        sentiment_percentage = (non_zero_sentiments[most_common_sentiment] / sum(non_zero_sentiments.values())) * 100
+        st.markdown(f"""
+        <div style='text-align: center;'>
+            <h2 style="color: white; font-size: 30px; font-weight: bold;">Overall Sentiment</h2>
+            <h2 style="color: white; font-size: 25px;">{most_common_sentiment.capitalize()} ({sentiment_percentage:.2f}%)</h2>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.warning("No dominant sentiment found.")
+
 
 if st.session_state.platform_selected:
     if st.session_state.platform_selected == "youtube":
