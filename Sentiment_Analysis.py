@@ -20,12 +20,23 @@ def extract_tweet_id(url):
     return url.strip('/').split("/")[-1]
 
 # Preprocess Comment (Preserve Telugu and other non-ASCII characters)
+# Preprocess Comment (Preserve Telugu and other non-ASCII characters, remove URLs, Twitter handles, and emojis)
 def preprocess_comment(comment):
-    comment = html.unescape(comment)
-    comment = re.sub(r'http[s]?://\S+|www\.\S+', '', comment)  # Remove URLs
-    comment = re.sub(r'<.*?>', '', comment)  # Remove HTML tags
-    comment = re.sub(r'@\w+', '', comment)  # Remove Twitter handles (e.g., @username)
-    return ' '.join(comment.split())  # Remove extra spaces (but keep Telugu)
+    # Remove emojis
+    comment = re.sub(r'[^\x00-\x7F]+', '', comment)  # This removes non-ASCII characters including emojis
+    
+    # Remove URLs
+    comment = re.sub(r'http[s]?://\S+|www\.\S+', '', comment)
+    
+    # Remove HTML tags
+    comment = re.sub(r'<.*?>', '', comment)
+    
+    # Remove Twitter handles
+    comment = re.sub(r'@\w+', '', comment)
+    
+    # Remove extra spaces
+    return ' '.join(comment.split())
+
 
 # Fetch YouTube comments
 def fetch_youtube_comments(video_id, api_key):
