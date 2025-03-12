@@ -12,55 +12,6 @@ import requests
 from dotenv import load_dotenv
 import os
 
-load_dotenv()
-
-youtube_api_key = os.getenv('YOUTUBE_API_KEY')
-twitter_api_key = os.getenv('TWITTER_API_KEY')
-
-# Function to extract video ID from URL
-def extract_video_id(url):
-    if "youtube.com/watch?v=" in url:
-        return url.split("v=")[1].split("&")[0]
-    return None
-
-# Function to extract tweet ID from URL
-def extract_tweet_id(url):
-    return url.strip('/').split("/")[-1]
-
-# Preprocess Comment (Preserve Telugu and other non-ASCII characters)
-# Preprocess Comment (Preserve Telugu and other non-ASCII characters and remove emojis)
-def preprocess_comment(comment):
-    # Decode HTML entities (e.g., &lt; -> <)
-    comment = html.unescape(comment)
-    
-    # Remove URLs
-    comment = re.sub(r'http[s]?://\S+|www\.\S+', '', comment) 
-    
-    # Remove HTML tags
-    comment = re.sub(r'<.*?>', '', comment) 
-    
-    # Remove Twitter handles (e.g., @username)
-    comment = re.sub(r'@\w+', '', comment) 
-    
-    # Remove emojis using regex but preserve Telugu and other non-ASCII characters
-    comment = re.sub(r'[^\x00-\x7F\u0C00-\u0C7F]+', '', comment)  # Preserve Telugu characters
-    
-    # Remove any extra spaces
-    return ' '.join(comment.split())
-import streamlit as st
-import re
-import html
-import pandas as pd
-import matplotlib.pyplot as plt
-from googleapiclient.discovery import build
-from textblob import TextBlob
-from googletrans import Translator
-import http.client
-import json
-import requests
-from dotenv import load_dotenv
-import os
-
 # Load environment variables from .env file
 load_dotenv()
 youtube_api_key = os.getenv('YOUTUBE_API_KEY')
@@ -160,7 +111,6 @@ st.markdown("""
 
 # Streamlit UI: Title and Platform Selection
 st.markdown("<h1 style='text-align: center;'>Sentiment Analysis of Transliterated Social Media Comments</h1>", unsafe_allow_html=True)
-
 st.markdown("<h4 style='text-align: center;'>Select a platform to analyze comments</h4>", unsafe_allow_html=True)
 
 col1, col2, col3, col4 = st.columns(4)
@@ -168,20 +118,19 @@ col1, col2, col3, col4 = st.columns(4)
 def social_button(icon_path, label, key):
     st.image(icon_path, width=50)
     
-    # Updated button style with grey background and black text on hover
     button_style = """
     <style>
     .stButton > button {{
-        background-color: #B0B0B0; /* Professional grey */
-        color: black; /* Black text color */
+        background-color: #B0B0B0;
+        color: black;
         border: none;
         border-radius: 5px;
         font-size: 14px;
         font-weight: bold;
     }}
     .stButton > button:hover {{
-        background-color: #B0B0B0; /* Keep grey background on hover */
-        color: black; /* Keep text color black on hover */
+        background-color: #B0B0B0;
+        color: black;
     }}
     </style>
     """
@@ -190,15 +139,14 @@ def social_button(icon_path, label, key):
     if st.button(label, key=key):
         st.session_state.platform_selected = key  # Store the key (not label)
 
-
 with col1:
-    social_button("C:\\Users\\User\\Downloads\\Youtube.jpeg", "YouTube", "youtube")
+    social_button(f"images\Youtube.jpeg", "YouTube", "youtube")
 with col2:
-    social_button("C:\\Users\\User\\Downloads\\X.jpeg", "⠀⠀X⠀⠀", "twitter")  # The key is still "twitter"
+    social_button(f"images\Twitter.jpeg", "⠀⠀X⠀⠀", "twitter")
 with col3:
-    social_button("C:\\Users\\User\\Downloads\\Instagram.jpeg", "Instagram", "ig")
+    social_button(f"images\Instagram.jpeg", "Instagram", "ig")
 with col4:
-    social_button("C:\\Users\\User\\Downloads\\Facebook.jpeg", "Facebook", "fb")
+    social_button(f"images\Facebook.jpeg", "Facebook", "fb")
 
 if "platform_selected" not in st.session_state:
     st.session_state.platform_selected = None
@@ -212,7 +160,7 @@ def run_analysis(comments):
     progress_bar = st.progress(0)
     
     for i, comment in enumerate(comments):
-        preprocessed_comment = preprocess_comment(comment)  # Preprocess the comment
+        preprocessed_comment = preprocess_comment(comment)
         translated_text = transliterate_and_translate(preprocessed_comment)
         
         if translated_text:
@@ -220,7 +168,7 @@ def run_analysis(comments):
             sentiment_counts[sentiment['sentiment']] += 1
             translations.append({
                 'Original Comment': comment,
-                'Preprocessed Comment': preprocessed_comment,  # Add preprocessed comment to the DataFrame
+                'Preprocessed Comment': preprocessed_comment,
                 'Translated Comment': translated_text,
                 'Sentiment': sentiment['sentiment']
             })
@@ -241,7 +189,7 @@ def run_analysis(comments):
         colors=['green', 'red', 'gray'],
         textprops={'color': 'white'}
     )
-        ax.set_title("Sentiment Distribution", fontsize=8, fontweight='bold', color='white')
+    ax.set_title("Sentiment Distribution", fontsize=8, fontweight='bold', color='white')
     fig.patch.set_facecolor("#0E1117")
     ax.set_facecolor("#0E1117")
     st.pyplot(fig)
