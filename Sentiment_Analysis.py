@@ -35,8 +35,8 @@ def preprocess_comment(comment):
     # Remove Twitter handles (e.g., @username)
     comment = re.sub(r'@\w+', '', comment) 
     
-    # Remove emojis using regex
-    comment = re.sub(r'[^\x00-\x7F]+', '', comment)  # Remove non-ASCII characters (including emojis)
+    # Remove emojis using regex but preserve Telugu and other non-ASCII characters
+    comment = re.sub(r'[^\x00-\x7F\u0C00-\u0C7F]+', '', comment)  # Preserve Telugu characters
     
     # Remove any extra spaces
     return ' '.join(comment.split())
@@ -86,20 +86,24 @@ def analyze_sentiment(text):
 from googletrans import Translator, LANGUAGES
 
 # Translate Text using Google Translator and handle Telugu and other languages
+from googletrans import Translator
+
 def transliterate_and_translate(text):
     if not text.strip():
         return None
     try:
         translator = Translator()
         
-        # Attempt to automatically detect the language, if not specifically Telugu
-        translation = translator.translate(text, src='auto', dest='en')
+        # Detect the language of the text
+        detected_lang = translator.detect(text).lang
+        
+        # Translate the text to English
+        translation = translator.translate(text, src=detected_lang, dest='en')
         
         return translation.text
     except Exception as e:
         print(f"Error during translation for '{text}': {e}")
         return None
-
 
 # Streamlit UI: Display profiles immediately at the top-right
 st.markdown("""
