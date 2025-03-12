@@ -9,15 +9,20 @@ from googletrans import Translator
 import http.client
 import json
 import requests
+import time
 from dotenv import load_dotenv
 import os
 
-# Load environment variables from the .env file
+# Load environment variables from the .env file (only once at the start of the script)
 load_dotenv()
 
 # Fetch API keys from environment variables
 YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
 TWITTER_API_KEY = os.getenv("TWITTER_API_KEY")
+
+# Ensure API keys are loaded correctly
+if not YOUTUBE_API_KEY or not TWITTER_API_KEY:
+    st.error("API keys are missing! Please check your .env file.")
 
 # Function to extract video ID from URL
 def extract_video_id(url):
@@ -40,6 +45,7 @@ def preprocess_comment(comment):
 
 # Fetch YouTube comments
 def fetch_youtube_comments(video_id, api_key):
+    start_time = time.time()  # Track API call duration
     youtube = build('youtube', 'v3', developerKey=api_key)
     comments = []
     request = youtube.commentThreads().list(
@@ -53,10 +59,14 @@ def fetch_youtube_comments(video_id, api_key):
         for item in results['items']:
             comments.append(item['snippet']['topLevelComment']['snippet']['textDisplay'])
         request = youtube.commentThreads().list_next(request, results)
+
+    duration = time.time() - start_time  # Measure time taken for the API request
+    st.write(f"Fetched {len(comments)} YouTube comments in {duration:.2f} seconds.")  # Log duration
     return comments
 
 # Fetch tweets using Twitter API
 def fetch_tweets(tweet_id, api_key):
+    start_time = time.time()  # Track API call duration
     conn = http.client.HTTPSConnection("twitter-api45.p.rapidapi.com")
     headers = {
         'x-rapidapi-key': api_key,
@@ -67,6 +77,8 @@ def fetch_tweets(tweet_id, api_key):
     data = res.read()
     if res.status == 200:
         tweets = json.loads(data.decode("utf-8"))
+        duration = time.time() - start_time  # Measure time taken for the API request
+        st.write(f"Fetched {len(tweets.get('timeline', []))} tweets in {duration:.2f} seconds.")  # Log duration
         return [tweet['text'] for tweet in tweets.get('timeline', [])]
     return []
 
@@ -94,74 +106,6 @@ def transliterate_and_translate(text):
     except Exception as e:
         print(f"Error during translation for '{text}': {e}")
         return None
-
-# Streamlit UI: Display profiles immediately at the top-right
-st.markdown("""
-    <div style="position: fixed; bottom: 10px; right: 10px; background-color: rgba(0, 0, 0, 0.5); padding: 10px; border-radius: 8px; width: auto;">
-        <h3 style="color: white; font-size: 18px; font-weight: bold; text-align: center;">Project By:</h3>
-        <p style="color: white; font-size: 14px; line-height: 1.6;">
-            <strong>S.K.Mruduvani</strong><br>
-            GitHub <a href="https://github.com/Mrudu17" target="_blank">
-                <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" width="18" height="18" style="vertical-align: middle;">
-            </a><br>
-            LinkedIn <a href="https://www.linkedin.com/in/s-k-mruduvani" target="_blank">
-                <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="18" height="18" style="vertical-align: middle;">
-            </a><br><br>
-            <strong>Kataru Shreya</strong><br>
-            GitHub <a href="https://github.com/KataruShreya" target="_blank">
-                <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" width="18" height="18" style="vertical-align: middle;">
-            </a><br>
-            LinkedIn <a href="https://www.linkedin.com/in/shreyakataru" target="_blank">
-                <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="18" height="18" style="vertical-align: middle;">
-            </a><br>
-        </p>
-    </div>
-""", unsafe_allow_html=True)
-
-# Streamlit UI: Title and Platform Selection
-st.markdown("<h1 style='text-align: center;'>Sentiment Analysis of Transliterated Social Media Comments</h1>", unsafe_allow_html=True)
-
-st.markdown("<h4 style='text-align: center;'>Select a platform to analyze comments</h4>", unsafe_allow_html=True)
-
-col1, col2, col3, col4 = st.columns(4)
-
-def social_button(icon_path, label, key):
-    st.image(icon_path, width=50)
-    
-    # Updated button style with grey background and black text on hover
-    button_style = """
-    <style>
-    .stButton > button {{
-        background-color: #B0B0B0; /* Professional grey */
-        color: black; /* Black text color */
-        border: none;
-        border-radius: 5px;
-        font-size: 14px;
-        font-weight: bold;
-    }}
-    .stButton > button:hover {{
-        background-color: #B0B0B0; /* Keep grey background on hover */
-        color: black; /* Keep text color black on hover */
-    }}
-    </style>
-    """
-    st.markdown(button_style, unsafe_allow_html=True)
-    
-    if st.button(label, key=key):
-        st.session_state.platform_selected = key  # Store the key (not label)
-
-
-with col1:
-    social_button(f"images/Youtube.jpeg", "YouTube", "youtube")
-with col2:
-    social_button(f"images/Twitter.jpeg", "⠀⠀X⠀⠀", "twitter")  # The key is still "twitter"
-with col3:
-    social_button(f"images/Instagram.jpeg", "Instagram", "ig")
-with col4:
-    social_button(f"images/Facebook.jpeg", "Facebook", "fb")
-
-if "platform_selected" not in st.session_state:
-    st.session_state.platform_selected = None
 
 # Common function to run analysis
 def run_analysis(comments):
@@ -232,3 +176,4 @@ if st.session_state.platform_selected:
             run_analysis(fetch_tweets(tweet_id, TWITTER_API_KEY))
     else:
         st.warning("🚀 Check back later! Support for this platform is coming soon.")
+
