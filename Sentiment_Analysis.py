@@ -12,10 +12,12 @@ import requests
 from dotenv import load_dotenv
 import os
 
-# Load environment variables from .env file
+# Load environment variables from the .env file
 load_dotenv()
-youtube_api_key = os.getenv('YOUTUBE_API_KEY')
-twitter_api_key = os.getenv('TWITTER_API_KEY')
+
+# Fetch API keys from environment variables
+YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
+TWITTER_API_KEY = os.getenv("TWITTER_API_KEY")
 
 # Function to extract video ID from URL
 def extract_video_id(url):
@@ -33,7 +35,8 @@ def preprocess_comment(comment):
     comment = re.sub(r'http[s]?://\S+|www\.\S+', '', comment)  # Remove URLs
     comment = re.sub(r'<.*?>', '', comment)  # Remove HTML tags
     comment = re.sub(r'@\w+', '', comment)  # Remove Twitter handles (e.g., @username)
-    return ' '.join(comment.split())  # Remove extra spaces (but keep Telugu)
+    comment = re.sub(r'[^\x00-\x7F\u0C00-\u0C7F]+', '', comment)  # Preserve Telugu characters
+    return ' '.join(comment.split())  # Remove extra spaces
 
 # Fetch YouTube comments
 def fetch_youtube_comments(video_id, api_key):
@@ -80,7 +83,13 @@ def transliterate_and_translate(text):
         return None
     try:
         translator = Translator()
-        translation = translator.translate(text, src='auto', dest='en')
+        
+        # Detect the language of the text
+        detected_lang = translator.detect(text).lang
+        
+        # Translate the text to English
+        translation = translator.translate(text, src=detected_lang, dest='en')
+        
         return translation.text
     except Exception as e:
         print(f"Error during translation for '{text}': {e}")
@@ -111,6 +120,7 @@ st.markdown("""
 
 # Streamlit UI: Title and Platform Selection
 st.markdown("<h1 style='text-align: center;'>Sentiment Analysis of Transliterated Social Media Comments</h1>", unsafe_allow_html=True)
+
 st.markdown("<h4 style='text-align: center;'>Select a platform to analyze comments</h4>", unsafe_allow_html=True)
 
 col1, col2, col3, col4 = st.columns(4)
@@ -118,19 +128,20 @@ col1, col2, col3, col4 = st.columns(4)
 def social_button(icon_path, label, key):
     st.image(icon_path, width=50)
     
+    # Updated button style with grey background and black text on hover
     button_style = """
     <style>
     .stButton > button {{
-        background-color: #B0B0B0;
-        color: black;
+        background-color: #B0B0B0; /* Professional grey */
+        color: black; /* Black text color */
         border: none;
         border-radius: 5px;
         font-size: 14px;
         font-weight: bold;
     }}
     .stButton > button:hover {{
-        background-color: #B0B0B0;
-        color: black;
+        background-color: #B0B0B0; /* Keep grey background on hover */
+        color: black; /* Keep text color black on hover */
     }}
     </style>
     """
@@ -139,10 +150,11 @@ def social_button(icon_path, label, key):
     if st.button(label, key=key):
         st.session_state.platform_selected = key  # Store the key (not label)
 
+
 with col1:
     social_button(f"images/Youtube.jpeg", "YouTube", "youtube")
 with col2:
-    social_button(f"images/Twitter.jpeg", "⠀⠀X⠀⠀", "twitter")
+    social_button(f"images/Twitter.jpeg", "⠀⠀X⠀⠀", "twitter")  # The key is still "twitter"
 with col3:
     social_button(f"images/Instagram.jpeg", "Instagram", "ig")
 with col4:
@@ -160,7 +172,7 @@ def run_analysis(comments):
     progress_bar = st.progress(0)
     
     for i, comment in enumerate(comments):
-        preprocessed_comment = preprocess_comment(comment)
+        preprocessed_comment = preprocess_comment(comment)  # Preprocess the comment
         translated_text = transliterate_and_translate(preprocessed_comment)
         
         if translated_text:
@@ -168,7 +180,7 @@ def run_analysis(comments):
             sentiment_counts[sentiment['sentiment']] += 1
             translations.append({
                 'Original Comment': comment,
-                'Preprocessed Comment': preprocessed_comment,
+                'Preprocessed Comment': preprocessed_comment,  # Add preprocessed comment to the DataFrame
                 'Translated Comment': translated_text,
                 'Sentiment': sentiment['sentiment']
             })
@@ -210,13 +222,13 @@ if st.session_state.platform_selected:
         if st.button("Analyze"):
             video_id = extract_video_id(youtube_url)
             if video_id:
-                run_analysis(fetch_youtube_comments(video_id, youtube_api_key))
+                run_analysis(fetch_youtube_comments(video_id, YOUTUBE_API_KEY))
             else:
                 st.error("Invalid YouTube URL!")
     elif st.session_state.platform_selected == "twitter":
         tweet_url = st.text_input("Enter the Tweet URL:")
         if st.button("Analyze"):
             tweet_id = extract_tweet_id(tweet_url)
-            run_analysis(fetch_tweets(tweet_id, twitter_api_key))
+            run_analysis(fetch_tweets(tweet_id, TWITTER_API_KEY))
     else:
         st.warning("🚀 Check back later! Support for this platform is coming soon.")
