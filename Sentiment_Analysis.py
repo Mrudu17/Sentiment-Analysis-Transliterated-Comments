@@ -9,6 +9,13 @@ from googletrans import Translator
 import http.client
 import json
 import requests
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+youtube_api_key = os.getenv('YOUTUBE_API_KEY')
+twitter_api_key = os.getenv('TWITTER_API_KEY')
 
 # Function to extract video ID from URL
 def extract_video_id(url):
@@ -40,7 +47,42 @@ def preprocess_comment(comment):
     
     # Remove any extra spaces
     return ' '.join(comment.split())
+import streamlit as st
+import re
+import html
+import pandas as pd
+import matplotlib.pyplot as plt
+from googleapiclient.discovery import build
+from textblob import TextBlob
+from googletrans import Translator
+import http.client
+import json
+import requests
+from dotenv import load_dotenv
+import os
 
+# Load environment variables from .env file
+load_dotenv()
+youtube_api_key = os.getenv('YOUTUBE_API_KEY')
+twitter_api_key = os.getenv('TWITTER_API_KEY')
+
+# Function to extract video ID from URL
+def extract_video_id(url):
+    if "youtube.com/watch?v=" in url:
+        return url.split("v=")[1].split("&")[0]
+    return None
+
+# Function to extract tweet ID from URL
+def extract_tweet_id(url):
+    return url.strip('/').split("/")[-1]
+
+# Preprocess Comment (Preserve Telugu and other non-ASCII characters)
+def preprocess_comment(comment):
+    comment = html.unescape(comment)
+    comment = re.sub(r'http[s]?://\S+|www\.\S+', '', comment)  # Remove URLs
+    comment = re.sub(r'<.*?>', '', comment)  # Remove HTML tags
+    comment = re.sub(r'@\w+', '', comment)  # Remove Twitter handles (e.g., @username)
+    return ' '.join(comment.split())  # Remove extra spaces (but keep Telugu)
 
 # Fetch YouTube comments
 def fetch_youtube_comments(video_id, api_key):
@@ -63,7 +105,7 @@ def fetch_youtube_comments(video_id, api_key):
 def fetch_tweets(tweet_id, api_key):
     conn = http.client.HTTPSConnection("twitter-api45.p.rapidapi.com")
     headers = {
-        'x-rapidapi-key': "68acfccf96msh43988501728891ep174caejsna4f16e4418ad",
+        'x-rapidapi-key': api_key,
         'x-rapidapi-host': "twitter-api45.p.rapidapi.com"
     }
     conn.request("GET", f"/latest_replies.php?id={tweet_id}", headers=headers)
@@ -82,24 +124,12 @@ def analyze_sentiment(text):
     return {'sentiment': sentiment, 'polarity': polarity}
 
 # Translate Text using Google Translator
-# Translate Text using Google Translator and handle Telugu and other languages
-from googletrans import Translator, LANGUAGES
-
-# Translate Text using Google Translator and handle Telugu and other languages
-from googletrans import Translator
-
 def transliterate_and_translate(text):
     if not text.strip():
         return None
     try:
         translator = Translator()
-        
-        # Detect the language of the text
-        detected_lang = translator.detect(text).lang
-        
-        # Translate the text to English
-        translation = translator.translate(text, src=detected_lang, dest='en')
-        
+        translation = translator.translate(text, src='auto', dest='en')
         return translation.text
     except Exception as e:
         print(f"Error during translation for '{text}': {e}")
@@ -162,13 +192,13 @@ def social_button(icon_path, label, key):
 
 
 with col1:
-    social_button(f"images/Youtube.jpeg", "YouTube", "youtube")
+    social_button("C:\\Users\\User\\Downloads\\Youtube.jpeg", "YouTube", "youtube")
 with col2:
-    social_button(f"images/Twitter.jpeg", "⠀⠀X⠀⠀", "twitter")  # The key is still "twitter"
+    social_button("C:\\Users\\User\\Downloads\\X.jpeg", "⠀⠀X⠀⠀", "twitter")  # The key is still "twitter"
 with col3:
-    social_button(f"images/Instagram.jpeg", "Instagram", "ig")
+    social_button("C:\\Users\\User\\Downloads\\Instagram.jpeg", "Instagram", "ig")
 with col4:
-    social_button(f"images/Facebook.jpeg", "Facebook", "fb")
+    social_button("C:\\Users\\User\\Downloads\\Facebook.jpeg", "Facebook", "fb")
 
 if "platform_selected" not in st.session_state:
     st.session_state.platform_selected = None
@@ -211,7 +241,7 @@ def run_analysis(comments):
         colors=['green', 'red', 'gray'],
         textprops={'color': 'white'}
     )
-    ax.set_title("Sentiment Distribution", fontsize=8, fontweight='bold', color='white')
+        ax.set_title("Sentiment Distribution", fontsize=8, fontweight='bold', color='white')
     fig.patch.set_facecolor("#0E1117")
     ax.set_facecolor("#0E1117")
     st.pyplot(fig)
@@ -232,13 +262,13 @@ if st.session_state.platform_selected:
         if st.button("Analyze"):
             video_id = extract_video_id(youtube_url)
             if video_id:
-                run_analysis(fetch_youtube_comments(video_id, "AIzaSyBjkB-c3lvG0dSyoQ0Byij5FLrhaewIilg"))
+                run_analysis(fetch_youtube_comments(video_id, youtube_api_key))
             else:
                 st.error("Invalid YouTube URL!")
     elif st.session_state.platform_selected == "twitter":
         tweet_url = st.text_input("Enter the Tweet URL:")
         if st.button("Analyze"):
             tweet_id = extract_tweet_id(tweet_url)
-            run_analysis(fetch_tweets(tweet_id, "68acfccf96msh43988501728891ep174caejsna4f16e4418ad"))
+            run_analysis(fetch_tweets(tweet_id, twitter_api_key))
     else:
         st.warning("🚀 Check back later! Support for this platform is coming soon.")
