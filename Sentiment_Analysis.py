@@ -82,16 +82,24 @@ def analyze_sentiment(text):
     return {'sentiment': sentiment, 'polarity': polarity}
 
 # Translate Text using Google Translator
+# Translate Text using Google Translator and handle Telugu and other languages
 def transliterate_and_translate(text):
     if not text.strip():
         return None
     try:
         translator = Translator()
-        translation = translator.translate(text, src='auto', dest='en')
+        
+        # Explicitly set the source language to Telugu for better detection if needed
+        translation = translator.translate(text, src='te', dest='en')  # 'te' is the language code for Telugu
+        
+        # If you prefer automatic language detection (to handle more languages), you can use:
+        # translation = translator.translate(text, src='auto', dest='en')
+        
         return translation.text
     except Exception as e:
         print(f"Error during translation for '{text}': {e}")
         return None
+
 
 # Streamlit UI: Display profiles immediately at the top-right
 st.markdown("""
