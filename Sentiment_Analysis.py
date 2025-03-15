@@ -10,6 +10,7 @@ import http.client
 import json
 import os
 from dotenv import load_dotenv
+import requests
 
 # Load environment variables from .env file
 load_dotenv()
@@ -69,18 +70,22 @@ def fetch_youtube_comments(video_id, api_key):
 
 # Fetch tweets using Twitter API
 def fetch_tweets(tweet_id, api_key):
-    conn = http.client.HTTPSConnection("twitter-api45.p.rapidapi.com")
+    url = f"https://twitter-api45.p.rapidapi.com/latest_replies.php?id={tweet_id}"
     headers = {
         'x-rapidapi-key': api_key,
         'x-rapidapi-host': "twitter-api45.p.rapidapi.com"
     }
-    conn.request("GET", f"/latest_replies.php?id={tweet_id}", headers=headers)
-    res = conn.getresponse()
-    data = res.read()
-    if res.status == 200:
-        tweets = json.loads(data.decode("utf-8"))
-        return [tweet['text'] for tweet in tweets.get('timeline', [])]
-    return []
+    try:
+        response = requests.get(url, headers=headers, timeout=10)  # Add a timeout
+        if response.status_code == 200:
+            tweets = response.json()
+            return [tweet['text'] for tweet in tweets.get('timeline', [])]
+        else:
+            st.error(f"Error fetching tweets: {response.status_code}")
+            return []
+    except Exception as e:
+        st.error(f"Error occurred while fetching tweets: {e}")
+        return []
 
 # Sentiment Analysis
 def analyze_sentiment(text):
@@ -98,7 +103,7 @@ def transliterate_and_translate(text):
         translation = translator.translate(text, src='auto', dest='en')
         return translation.text
     except Exception as e:
-        print(f"Error during translation for '{text}': {e}")
+        st.warning(f"Error during translation for '{text}': {e}")
         return None
 
 # Streamlit UI: Display profiles immediately at the top-right
@@ -158,13 +163,13 @@ def social_button(icon_path, label, key):
 
 
 with col1:
-    social_button(f"image\Youtube.jpeg", "YouTube", "youtube")
+    social_button(r"image\Youtube.jpeg", "YouTube", "youtube")
 with col2:
-    social_button(f"image\Twitter.jpeg", "⠀⠀X⠀⠀", "twitter")  # The key is still "twitter"
+    social_button(r"image\Twitter.jpeg", "⠀⠀X⠀⠀", "twitter")
 with col3:
-    social_button(f"image\Instagram.jpeg", "Instagram", "ig")
+    social_button(r"image\Instagram.jpeg", "Instagram", "ig")
 with col4:
-    social_button(f"image\Facebook.jpeg", "Facebook", "fb")
+    social_button(r"image\Facebook.jpeg", "Facebook", "fb")
 
 if "platform_selected" not in st.session_state:
     st.session_state.platform_selected = None
@@ -172,6 +177,10 @@ if "platform_selected" not in st.session_state:
 # Common function to run analysis
 def run_analysis(comments):
     total_comments = len(comments)
+    if total_comments == 0:
+        st.warning("No comments found to analyze!")
+        return
+
     sentiment_counts = {'positive': 0, 'negative': 0, 'neutral': 0}
     translations = []
     
@@ -190,7 +199,7 @@ def run_analysis(comments):
                 'Translated Comment': translated_text,
                 'Sentiment': sentiment['sentiment']
             })
-        progress_bar.progress(min(int(((i + 1) / total_comments) * 100), 100))
+        progress_bar.progress((i + 1) / total_comments)
     
     df = pd.DataFrame(translations)
     st.success("Analysis complete!")
@@ -238,4 +247,3 @@ if st.session_state.platform_selected:
             run_analysis(fetch_tweets(tweet_id, TWITTER_API_KEY))
     else:
         st.warning("🚀 Check back later! Support for this platform is coming soon.")
-
