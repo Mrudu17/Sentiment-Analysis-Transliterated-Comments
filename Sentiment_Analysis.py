@@ -160,10 +160,6 @@ def run_analysis(comments):
     </div>
     """, unsafe_allow_html=True)
 
-# Ensure that the platform is selected before accessing it
-if "platform_selected" not in st.session_state:
-    st.session_state.platform_selected = None
-
 if st.session_state.platform_selected:
     if st.session_state.platform_selected == "youtube":
         youtube_url = st.text_input("Enter the YouTube video URL:")
