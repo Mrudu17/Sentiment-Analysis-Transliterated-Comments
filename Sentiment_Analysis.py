@@ -3,11 +3,10 @@ import re
 import html
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns  # For better visualization
 from googleapiclient.discovery import build
 from textblob import TextBlob
 from googletrans import Translator
-import http.client
-import json
 import os
 from dotenv import load_dotenv
 import requests
@@ -33,40 +32,33 @@ def extract_tweet_id(url):
 def preprocess_comment(comment):
     if not comment:
         return ""
-    # Decode HTML entities (e.g., &lt; -> <)
-    comment = html.unescape(comment)
-    
-    # Remove URLs
-    comment = re.sub(r'http[s]?://\S+|www\.\S+', '', comment) 
-    
-    # Remove HTML tags
-    comment = re.sub(r'<.*?>', '', comment) 
-    
-    # Remove Twitter handles (e.g., @username)
-    comment = re.sub(r'@\w+', '', comment) 
-    
-    # Remove emojis using regex
-    comment = re.sub(r'[^\x00-\x7F]+', '', comment)  # Remove non-ASCII characters (including emojis)
-    
-    # Remove any extra spaces
-    return ' '.join(comment.split())
+    comment = html.unescape(comment)  # Decode HTML entities
+    comment = re.sub(r'http[s]?://\S+|www\.\S+', '', comment)  # Remove URLs
+    comment = re.sub(r'<.*?>', '', comment)  # Remove HTML tags
+    comment = re.sub(r'@\w+', '', comment)  # Remove Twitter handles
+    comment = re.sub(r'[^\x00-\x7F]+', '', comment)  # Remove non-ASCII (emojis)
+    return ' '.join(comment.split())  # Remove extra spaces
 
 # Fetch YouTube comments
 def fetch_youtube_comments(video_id, api_key):
-    youtube = build('youtube', 'v3', developerKey=api_key)
-    comments = []
-    request = youtube.commentThreads().list(
-        part="snippet",
-        videoId=video_id,
-        textFormat="plainText",
-        maxResults=100
-    )
-    while request:
-        results = request.execute()
-        for item in results['items']:
-            comments.append(item['snippet']['topLevelComment']['snippet']['textDisplay'])
-        request = youtube.commentThreads().list_next(request, results)
-    return comments
+    try:
+        youtube = build('youtube', 'v3', developerKey=api_key)
+        comments = []
+        request = youtube.commentThreads().list(
+            part="snippet",
+            videoId=video_id,
+            textFormat="plainText",
+            maxResults=100
+        )
+        while request:
+            results = request.execute()
+            for item in results.get('items', []):
+                comments.append(item['snippet']['topLevelComment']['snippet']['textDisplay'])
+            request = youtube.commentThreads().list_next(request, results)
+        return comments
+    except Exception as e:
+        st.error(f"Error fetching YouTube comments: {e}")
+        return []
 
 # Fetch tweets using Twitter API
 def fetch_tweets(tweet_id, api_key):
@@ -76,7 +68,7 @@ def fetch_tweets(tweet_id, api_key):
         'x-rapidapi-host': "twitter-api45.p.rapidapi.com"
     }
     try:
-        response = requests.get(url, headers=headers, timeout=10)  # Add a timeout
+        response = requests.get(url, headers=headers, timeout=10)
         if response.status_code == 200:
             tweets = response.json()
             return [tweet['text'] for tweet in tweets.get('timeline', [])]
@@ -106,61 +98,30 @@ def transliterate_and_translate(text):
         st.warning(f"Error during translation for '{text}': {e}")
         return None
 
-# Streamlit UI: Display profiles immediately at the top-right
+# Streamlit UI: Display profiles at the bottom-right
 st.markdown("""
     <div style="position: fixed; bottom: 10px; right: 10px; background-color: rgba(0, 0, 0, 0.5); padding: 10px; border-radius: 8px; width: auto;">
-        <h3 style="color: white; font-size: 18px; font-weight: bold; text-align: center;">Project By:</h3>
-        <p style="color: white; font-size: 14px; line-height: 1.6;">
+        <h3 style="color: white;">Project By:</h3>
+        <p style="color: white;">
             <strong>S.K.Mruduvani</strong><br>
-            GitHub <a href="https://github.com/Mrudu17" target="_blank">
-                <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" width="18" height="18" style="vertical-align: middle;">
-            </a><br>
-            LinkedIn <a href="https://www.linkedin.com/in/s-k-mruduvani" target="_blank">
-                <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="18" height="18" style="vertical-align: middle;">
-            </a><br><br>
+            <a href="https://github.com/Mrudu17" target="_blank">GitHub</a> | 
+            <a href="https://www.linkedin.com/in/s-k-mruduvani" target="_blank">LinkedIn</a><br><br>
             <strong>Kataru Shreya</strong><br>
-            GitHub <a href="https://github.com/KataruShreya" target="_blank">
-                <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" width="18" height="18" style="vertical-align: middle;">
-            </a><br>
-            LinkedIn <a href="https://www.linkedin.com/in/shreyakataru" target="_blank">
-                <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="18" height="18" style="vertical-align: middle;">
-            </a><br>
+            <a href="https://github.com/KataruShreya" target="_blank">GitHub</a> | 
+            <a href="https://www.linkedin.com/in/shreyakataru" target="_blank">LinkedIn</a>
         </p>
     </div>
 """, unsafe_allow_html=True)
 
-# Streamlit UI: Title and Platform Selection
-st.markdown("<h1 style='text-align: center;'>Sentiment Analysis of Transliterated Social Media Comments</h1>", unsafe_allow_html=True)
-
+st.markdown("<h1 style='text-align: center;'>Sentiment Analysis of Social Media Comments</h1>", unsafe_allow_html=True)
 st.markdown("<h4 style='text-align: center;'>Select a platform to analyze comments</h4>", unsafe_allow_html=True)
 
 col1, col2, col3, col4 = st.columns(4)
 
 def social_button(icon_path, label, key):
     st.image(icon_path, width=50)
-    
-    # Updated button style with grey background and black text on hover
-    button_style = """
-    <style>
-    .stButton > button {{
-        background-color: #B0B0B0; /* Professional grey */
-        color: black; /* Black text color */
-        border: none;
-        border-radius: 5px;
-        font-size: 14px;
-        font-weight: bold;
-    }}
-    .stButton > button:hover {{
-        background-color: #B0B0B0; /* Keep grey background on hover */
-        color: black; /* Keep text color black on hover */
-    }}
-    </style>
-    """
-    st.markdown(button_style, unsafe_allow_html=True)
-    
     if st.button(label, key=key):
-        st.session_state.platform_selected = key  # Store the key (not label)
-
+        st.session_state.platform_selected = key
 
 with col1:
     social_button("images/Youtube.jpeg", "Youtube", "youtube")
@@ -174,7 +135,7 @@ with col4:
 if "platform_selected" not in st.session_state:
     st.session_state.platform_selected = None
 
-# Common function to run analysis
+# Function to run analysis
 def run_analysis(comments):
     total_comments = len(comments)
     if total_comments == 0:
@@ -187,7 +148,7 @@ def run_analysis(comments):
     progress_bar = st.progress(0)
     
     for i, comment in enumerate(comments):
-        preprocessed_comment = preprocess_comment(comment)  # Preprocess the comment
+        preprocessed_comment = preprocess_comment(comment)
         translated_text = transliterate_and_translate(preprocessed_comment)
         
         if translated_text:
@@ -195,7 +156,7 @@ def run_analysis(comments):
             sentiment_counts[sentiment['sentiment']] += 1
             translations.append({
                 'Original Comment': comment,
-                'Preprocessed Comment': preprocessed_comment,  # Add preprocessed comment to the DataFrame
+                'Preprocessed Comment': preprocessed_comment,
                 'Translated Comment': translated_text,
                 'Sentiment': sentiment['sentiment']
             })
@@ -207,30 +168,13 @@ def run_analysis(comments):
     
     csv = df.to_csv(index=False).encode('utf-8')
     st.download_button("Download CSV", data=csv, file_name="sentiment_analysis.csv", mime="text/csv")
-    
-    fig, ax = plt.subplots(figsize=(2, 2))
-    ax.pie(
-        sentiment_counts.values(), 
-        labels=sentiment_counts.keys(), 
-        autopct='%1.1f%%', 
-        colors=['green', 'red', 'gray'],
-        textprops={'color': 'white'}
-    )
-    ax.set_title("Sentiment Distribution", fontsize=8, fontweight='bold', color='white')
-    fig.patch.set_facecolor("#0E1117")
-    ax.set_facecolor("#0E1117")
-    st.pyplot(fig)
-    
-    most_common_sentiment = max(sentiment_counts, key=sentiment_counts.get)
-    sentiment_percentage = (sentiment_counts[most_common_sentiment] / sum(sentiment_counts.values())) * 100
-    
-    st.markdown(f"""
-    <div style='text-align: center;'>
-        <h2 style="color: white; font-size: 30px; font-weight: bold;">Overall Sentiment</h2>
-        <h2 style="color: white; font-size: 25px;">{most_common_sentiment.capitalize()} ({sentiment_percentage:.2f}%)</h2>
-    </div>
-    """, unsafe_allow_html=True)
 
+    # Plot sentiment distribution
+    fig, ax = plt.subplots()
+    ax.pie(sentiment_counts.values(), labels=sentiment_counts.keys(), autopct='%1.1f%%', colors=['green', 'red', 'gray'])
+    st.pyplot(fig)
+
+# Handling platform selection and analysis
 if st.session_state.platform_selected:
     if st.session_state.platform_selected == "youtube":
         youtube_url = st.text_input("Enter the YouTube video URL:")
@@ -247,3 +191,4 @@ if st.session_state.platform_selected:
             run_analysis(fetch_tweets(tweet_id, TWITTER_API_KEY))
     else:
         st.warning("🚀 Check back later! Support for this platform is coming soon.")
+
