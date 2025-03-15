@@ -8,9 +8,8 @@ from textblob import TextBlob
 from googletrans import Translator
 import http.client
 import json
-import requests
-from dotenv import load_dotenv
 import os
+from dotenv import load_dotenv
 
 # Load environment variables from the .env file
 load_dotenv()
@@ -19,7 +18,7 @@ load_dotenv()
 YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
 TWITTER_API_KEY = os.getenv("TWITTER_API_KEY")
 
-# Check if the API keys are loaded
+# Ensure API keys are loaded correctly
 if not YOUTUBE_API_KEY or not TWITTER_API_KEY:
     st.error("API keys are missing! Please check your .env file.")
 
@@ -33,14 +32,25 @@ def extract_video_id(url):
 def extract_tweet_id(url):
     return url.strip('/').split("/")[-1]
 
-# Preprocess Comment (Preserve Telugu and other non-ASCII characters)
+# Preprocess Comment (Preserve Telugu and other non-ASCII characters and remove emojis)
 def preprocess_comment(comment):
+    # Decode HTML entities (e.g., &lt; -> <)
     comment = html.unescape(comment)
-    comment = re.sub(r'http[s]?://\S+|www\.\S+', '', comment)  # Remove URLs
-    comment = re.sub(r'<.*?>', '', comment)  # Remove HTML tags
-    comment = re.sub(r'@\w+', '', comment)  # Remove Twitter handles (e.g., @username)
+    
+    # Remove URLs
+    comment = re.sub(r'http[s]?://\S+|www\.\S+', '', comment) 
+    
+    # Remove HTML tags
+    comment = re.sub(r'<.*?>', '', comment) 
+    
+    # Remove Twitter handles (e.g., @username)
+    comment = re.sub(r'@\w+', '', comment) 
+    
+    # Remove emojis using regex but preserve Telugu and other non-ASCII characters
     comment = re.sub(r'[^\x00-\x7F\u0C00-\u0C7F]+', '', comment)  # Preserve Telugu characters
-    return ' '.join(comment.split())  # Remove extra spaces
+    
+    # Remove any extra spaces
+    return ' '.join(comment.split())
 
 # Fetch YouTube comments
 def fetch_youtube_comments(video_id, api_key):
@@ -132,6 +142,7 @@ col1, col2, col3, col4 = st.columns(4)
 def social_button(icon_path, label, key):
     st.image(icon_path, width=50)
     
+    # Updated button style with grey background and black text on hover
     button_style = """
     <style>
     .stButton > button {{
@@ -143,21 +154,21 @@ def social_button(icon_path, label, key):
         font-weight: bold;
     }}
     .stButton > button:hover {{
-        background-color: #B0B0B0; 
-        color: black; 
+        background-color: #B0B0B0; /* Keep grey background on hover */
+        color: black; /* Keep text color black on hover */
     }}
     </style>
     """
     st.markdown(button_style, unsafe_allow_html=True)
     
     if st.button(label, key=key):
-        st.session_state.platform_selected = key
+        st.session_state.platform_selected = key  # Store the key (not label)
 
 
 with col1:
     social_button(f"images/Youtube.jpeg", "YouTube", "youtube")
 with col2:
-    social_button(f"images/Twitter.jpeg", "⠀⠀X⠀⠀", "twitter")  
+    social_button(f"images/Twitter.jpeg", "⠀⠀X⠀⠀", "twitter")  # The key is still "twitter"
 with col3:
     social_button(f"images/Instagram.jpeg", "Instagram", "ig")
 with col4:
@@ -183,7 +194,7 @@ def run_analysis(comments):
             sentiment_counts[sentiment['sentiment']] += 1
             translations.append({
                 'Original Comment': comment,
-                'Preprocessed Comment': preprocessed_comment,
+                'Preprocessed Comment': preprocessed_comment,  # Add preprocessed comment to the DataFrame
                 'Translated Comment': translated_text,
                 'Sentiment': sentiment['sentiment']
             })
@@ -225,17 +236,18 @@ if st.session_state.platform_selected:
         if st.button("Analyze"):
             video_id = extract_video_id(youtube_url)
             if video_id:
-                run_analysis(fetch_youtube_comments(video_id, YOUTUBE_API_KEY))
+                comments = fetch_youtube_comments(video_id, YOUTUBE_API_KEY)
+                run_analysis(comments)
             else:
                 st.error("Invalid YouTube URL!")
     elif st.session_state.platform_selected == "twitter":
         tweet_url = st.text_input("Enter the Tweet URL:")
         if st.button("Analyze"):
             tweet_id = extract_tweet_id(tweet_url)
-            run_analysis(fetch_tweets(tweet_id, TWITTER_API_KEY))
+            comments = fetch_tweets(tweet_id, TWITTER_API_KEY)
+            run_analysis(comments)
     else:
         st.warning("🚀 Check back later! Support for this platform is coming soon.")
-
 
 
 
