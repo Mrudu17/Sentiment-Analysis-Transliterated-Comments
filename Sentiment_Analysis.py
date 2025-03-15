@@ -247,4 +247,3 @@ if st.session_state.platform_selected:
     else:
         st.warning("🚀 Check back later! Support for this platform is coming soon.")
 
-
