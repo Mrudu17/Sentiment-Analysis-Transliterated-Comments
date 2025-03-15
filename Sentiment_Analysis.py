@@ -8,7 +8,6 @@ from textblob import TextBlob
 from googletrans import Translator
 import http.client
 import json
-import requests
 from googleapiclient.errors import HttpError
 import os
 from dotenv import load_dotenv
@@ -32,6 +31,8 @@ def extract_tweet_id(url):
 
 # Preprocess Comment (Preserve Telugu and other non-ASCII characters and remove emojis)
 def preprocess_comment(comment):
+    if not comment:
+        return ""
     # Decode HTML entities (e.g., &lt; -> <)
     comment = html.unescape(comment)
     
@@ -74,17 +75,16 @@ def fetch_youtube_comments(video_id):
 # Fetch tweets using Twitter API
 def fetch_tweets(tweet_id):
     try:
-        conn = http.client.HTTPSConnection("twitter-api45.p.rapidapi.com")
+        conn = http.client.HTTPSConnection("api.twitter.com")
         headers = {
-            'x-rapidapi-key': TWITTER_API_KEY,
-            'x-rapidapi-host': "twitter-api45.p.rapidapi.com"
+            'Authorization': f'Bearer {TWITTER_API_KEY}'
         }
-        conn.request("GET", f"/latest_replies.php?id={tweet_id}", headers=headers)
+        conn.request("GET", f"/2/tweets/{tweet_id}/replies", headers=headers)
         res = conn.getresponse()
         data = res.read()
         if res.status == 200:
             tweets = json.loads(data.decode("utf-8"))
-            return [tweet['text'] for tweet in tweets.get('timeline', [])]
+            return [tweet['text'] for tweet in tweets.get('data', [])]
         else:
             st.error(f"Error fetching tweets: {res.status}")
             return []
@@ -105,16 +105,11 @@ def transliterate_and_translate(text):
         return None
     try:
         translator = Translator()
-        
-        # Detect the language of the text
-        detected_lang = translator.detect(text).lang
-        
         # Translate the text to English
-        translation = translator.translate(text, src=detected_lang, dest='en')
-        
+        translation = translator.translate(text, dest='en')
         return translation.text
     except Exception as e:
-        print(f"Error during translation for '{text}': {e}")
+        st.warning(f"Error during translation for '{text}': {e}")
         return None
 
 # Streamlit UI: Display profiles immediately at the top-right
@@ -149,36 +144,17 @@ col1, col2, col3, col4 = st.columns(4)
 
 def social_button(icon_path, label, key):
     st.image(icon_path, width=50)
-    
-    button_style = """
-    <style>
-    .stButton > button {{
-        background-color: #B0B0B0; 
-        color: black; 
-        border: none;
-        border-radius: 5px;
-        font-size: 14px;
-        font-weight: bold;
-    }}
-    .stButton > button:hover {{
-        background-color: #B0B0B0; 
-        color: black; 
-    }}
-    </style>
-    """
-    st.markdown(button_style, unsafe_allow_html=True)
-    
     if st.button(label, key=key):
         st.session_state.platform_selected = key  
 
 with col1:
-    social_button(f"images/Youtube.jpeg", "YouTube", "youtube")
+    social_button("images/Youtube.jpeg", "YouTube", "youtube")
 with col2:
-    social_button(f"images/Twitter.jpeg", "⠀⠀X⠀⠀", "twitter")
+    social_button("images/Twitter.jpeg", "⠀⠀X⠀⠀", "twitter")
 with col3:
-    social_button(f"images/Instagram.jpeg", "Instagram", "ig")
+    social_button("images/Instagram.jpeg", "Instagram", "ig")
 with col4:
-    social_button(f"images/Facebook.jpeg", "Facebook", "fb")
+    social_button("images/Facebook.jpeg", "Facebook", "fb")
 
 if "platform_selected" not in st.session_state:
     st.session_state.platform_selected = None
@@ -186,12 +162,18 @@ if "platform_selected" not in st.session_state:
 # Common function to run analysis
 def run_analysis(comments):
     total_comments = len(comments)
+    if total_comments == 0:
+        st.warning("No comments found to analyze!")
+        return
+
     sentiment_counts = {'positive': 0, 'negative': 0, 'neutral': 0}
     translations = []
     
     progress_bar = st.progress(0)
+    status_text = st.empty()  # Placeholder for status updates
     
     for i, comment in enumerate(comments):
+        status_text.text(f"Processing comment {i + 1} of {total_comments}...")
         preprocessed_comment = preprocess_comment(comment)  
         translated_text = transliterate_and_translate(preprocessed_comment)
         
@@ -204,7 +186,7 @@ def run_analysis(comments):
                 'Translated Comment': translated_text,
                 'Sentiment': sentiment['sentiment']
             })
-        progress_bar.progress(min(int(((i + 1) / total_comments) * 100), 100))
+        progress_bar.progress((i + 1) / total_comments)
     
     df = pd.DataFrame(translations)
     st.success("Analysis complete!")
@@ -242,16 +224,27 @@ if st.session_state.platform_selected:
         if st.button("Analyze"):
             video_id = extract_video_id(youtube_url)
             if video_id:
-                run_analysis(fetch_youtube_comments(video_id))
+                st.write("Fetching comments...")
+                comments = fetch_youtube_comments(video_id)
+                if comments:
+                    st.write(f"Fetched {len(comments)} comments. Analyzing...")
+                    run_analysis(comments)
+                else:
+                    st.error("No comments found!")
             else:
                 st.error("Invalid YouTube URL!")
     elif st.session_state.platform_selected == "twitter":
         tweet_url = st.text_input("Enter the Tweet URL:")
         if st.button("Analyze"):
             tweet_id = extract_tweet_id(tweet_url)
-            run_analysis(fetch_tweets(tweet_id))
+            st.write("Fetching tweets...")
+            tweets = fetch_tweets(tweet_id)
+            if tweets:
+                st.write(f"Fetched {len(tweets)} tweets. Analyzing...")
+                run_analysis(tweets)
+            else:
+                st.error("No tweets found!")
     else:
         st.warning("🚀 Check back later! Support for this platform is coming soon.")
-
 
 
