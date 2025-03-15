@@ -9,13 +9,14 @@ from googletrans import Translator
 import http.client
 import json
 import requests
+from googleapiclient.errors import HttpError
 import os
 from dotenv import load_dotenv
 
-# Load environment variables from the .env file
+# Load API keys from .env file
 load_dotenv()
 
-# Get API keys from environment variables
+# Fetch the API keys from environment variables
 YOUTUBE_API_KEY = os.getenv('YOUTUBE_API_KEY')
 TWITTER_API_KEY = os.getenv('TWITTER_API_KEY')
 
@@ -51,35 +52,45 @@ def preprocess_comment(comment):
 
 # Fetch YouTube comments
 def fetch_youtube_comments(video_id):
-    youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
-    comments = []
-    request = youtube.commentThreads().list(
-        part="snippet",
-        videoId=video_id,
-        textFormat="plainText",
-        maxResults=100
-    )
-    while request:
-        results = request.execute()
-        for item in results['items']:
-            comments.append(item['snippet']['topLevelComment']['snippet']['textDisplay'])
-        request = youtube.commentThreads().list_next(request, results)
-    return comments
+    try:
+        youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
+        comments = []
+        request = youtube.commentThreads().list(
+            part="snippet",
+            videoId=video_id,
+            textFormat="plainText",
+            maxResults=100
+        )
+        while request:
+            results = request.execute()
+            for item in results['items']:
+                comments.append(item['snippet']['topLevelComment']['snippet']['textDisplay'])
+            request = youtube.commentThreads().list_next(request, results)
+        return comments
+    except HttpError as e:
+        st.error(f"HTTP Error occurred: {e}")
+        return []
 
 # Fetch tweets using Twitter API
 def fetch_tweets(tweet_id):
-    conn = http.client.HTTPSConnection("twitter-api45.p.rapidapi.com")
-    headers = {
-        'x-rapidapi-key': TWITTER_API_KEY,
-        'x-rapidapi-host': "twitter-api45.p.rapidapi.com"
-    }
-    conn.request("GET", f"/latest_replies.php?id={tweet_id}", headers=headers)
-    res = conn.getresponse()
-    data = res.read()
-    if res.status == 200:
-        tweets = json.loads(data.decode("utf-8"))
-        return [tweet['text'] for tweet in tweets.get('timeline', [])]
-    return []
+    try:
+        conn = http.client.HTTPSConnection("twitter-api45.p.rapidapi.com")
+        headers = {
+            'x-rapidapi-key': TWITTER_API_KEY,
+            'x-rapidapi-host': "twitter-api45.p.rapidapi.com"
+        }
+        conn.request("GET", f"/latest_replies.php?id={tweet_id}", headers=headers)
+        res = conn.getresponse()
+        data = res.read()
+        if res.status == 200:
+            tweets = json.loads(data.decode("utf-8"))
+            return [tweet['text'] for tweet in tweets.get('timeline', [])]
+        else:
+            st.error(f"Error fetching tweets: {res.status}")
+            return []
+    except Exception as e:
+        st.error(f"Error occurred while fetching tweets: {e}")
+        return []
 
 # Sentiment Analysis
 def analyze_sentiment(text):
@@ -139,33 +150,31 @@ col1, col2, col3, col4 = st.columns(4)
 def social_button(icon_path, label, key):
     st.image(icon_path, width=50)
     
-    # Updated button style with grey background and black text on hover
     button_style = """
     <style>
     .stButton > button {{
-        background-color: #B0B0B0; /* Professional grey */
-        color: black; /* Black text color */
+        background-color: #B0B0B0; 
+        color: black; 
         border: none;
         border-radius: 5px;
         font-size: 14px;
         font-weight: bold;
     }}
     .stButton > button:hover {{
-        background-color: #B0B0B0; /* Keep grey background on hover */
-        color: black; /* Keep text color black on hover */
+        background-color: #B0B0B0; 
+        color: black; 
     }}
     </style>
     """
     st.markdown(button_style, unsafe_allow_html=True)
     
     if st.button(label, key=key):
-        st.session_state.platform_selected = key  # Store the key (not label)
-
+        st.session_state.platform_selected = key  
 
 with col1:
     social_button(f"images/Youtube.jpeg", "YouTube", "youtube")
 with col2:
-    social_button(f"images/Twitter.jpeg", "⠀⠀X⠀⠀", "twitter")  # The key is still "twitter"
+    social_button(f"images/Twitter.jpeg", "⠀⠀X⠀⠀", "twitter")
 with col3:
     social_button(f"images/Instagram.jpeg", "Instagram", "ig")
 with col4:
@@ -183,7 +192,7 @@ def run_analysis(comments):
     progress_bar = st.progress(0)
     
     for i, comment in enumerate(comments):
-        preprocessed_comment = preprocess_comment(comment)  # Preprocess the comment
+        preprocessed_comment = preprocess_comment(comment)  
         translated_text = transliterate_and_translate(preprocessed_comment)
         
         if translated_text:
@@ -191,7 +200,7 @@ def run_analysis(comments):
             sentiment_counts[sentiment['sentiment']] += 1
             translations.append({
                 'Original Comment': comment,
-                'Preprocessed Comment': preprocessed_comment,  # Add preprocessed comment to the DataFrame
+                'Preprocessed Comment': preprocessed_comment,  
                 'Translated Comment': translated_text,
                 'Sentiment': sentiment['sentiment']
             })
