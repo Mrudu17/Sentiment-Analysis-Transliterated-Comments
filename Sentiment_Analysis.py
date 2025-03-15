@@ -8,19 +8,16 @@ from textblob import TextBlob
 from googletrans import Translator
 import http.client
 import json
+import requests
 import os
 from dotenv import load_dotenv
 
 # Load environment variables from the .env file
 load_dotenv()
 
-# Fetch API keys from environment variables
-YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
-TWITTER_API_KEY = os.getenv("TWITTER_API_KEY")
-
-# Ensure API keys are loaded correctly
-if not YOUTUBE_API_KEY or not TWITTER_API_KEY:
-    st.error("API keys are missing! Please check your .env file.")
+# Get API keys from environment variables
+YOUTUBE_API_KEY = os.getenv('YOUTUBE_API_KEY')
+TWITTER_API_KEY = os.getenv('TWITTER_API_KEY')
 
 # Function to extract video ID from URL
 def extract_video_id(url):
@@ -53,8 +50,8 @@ def preprocess_comment(comment):
     return ' '.join(comment.split())
 
 # Fetch YouTube comments
-def fetch_youtube_comments(video_id, api_key):
-    youtube = build('youtube', 'v3', developerKey=api_key)
+def fetch_youtube_comments(video_id):
+    youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
     comments = []
     request = youtube.commentThreads().list(
         part="snippet",
@@ -70,10 +67,10 @@ def fetch_youtube_comments(video_id, api_key):
     return comments
 
 # Fetch tweets using Twitter API
-def fetch_tweets(tweet_id, api_key):
+def fetch_tweets(tweet_id):
     conn = http.client.HTTPSConnection("twitter-api45.p.rapidapi.com")
     headers = {
-        'x-rapidapi-key': api_key,
+        'x-rapidapi-key': TWITTER_API_KEY,
         'x-rapidapi-host': "twitter-api45.p.rapidapi.com"
     }
     conn.request("GET", f"/latest_replies.php?id={tweet_id}", headers=headers)
@@ -91,7 +88,7 @@ def analyze_sentiment(text):
     sentiment = 'positive' if polarity > 0 else 'negative' if polarity < 0 else 'neutral'
     return {'sentiment': sentiment, 'polarity': polarity}
 
-# Translate Text using Google Translator
+# Translate Text using Google Translator and handle Telugu and other languages
 def transliterate_and_translate(text):
     if not text.strip():
         return None
@@ -236,16 +233,14 @@ if st.session_state.platform_selected:
         if st.button("Analyze"):
             video_id = extract_video_id(youtube_url)
             if video_id:
-                comments = fetch_youtube_comments(video_id, YOUTUBE_API_KEY)
-                run_analysis(comments)
+                run_analysis(fetch_youtube_comments(video_id))
             else:
                 st.error("Invalid YouTube URL!")
     elif st.session_state.platform_selected == "twitter":
         tweet_url = st.text_input("Enter the Tweet URL:")
         if st.button("Analyze"):
             tweet_id = extract_tweet_id(tweet_url)
-            comments = fetch_tweets(tweet_id, TWITTER_API_KEY)
-            run_analysis(comments)
+            run_analysis(fetch_tweets(tweet_id))
     else:
         st.warning("🚀 Check back later! Support for this platform is coming soon.")
 
