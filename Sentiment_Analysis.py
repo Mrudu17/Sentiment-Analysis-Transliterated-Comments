@@ -13,10 +13,6 @@ import time
 from dotenv import load_dotenv
 import os
 
-# Initialize session state key to prevent errors
-if 'platform_selected' not in st.session_state:
-    st.session_state.platform_selected = None  # Default to None
-
 # Load environment variables from the .env file (only once at the start of the script)
 load_dotenv()
 
@@ -164,7 +160,6 @@ def run_analysis(comments):
     </div>
     """, unsafe_allow_html=True)
 
-# Check the platform selected in session state
 if st.session_state.platform_selected:
     if st.session_state.platform_selected == "youtube":
         youtube_url = st.text_input("Enter the YouTube video URL:")
@@ -181,5 +176,4 @@ if st.session_state.platform_selected:
             run_analysis(fetch_tweets(tweet_id, TWITTER_API_KEY))
     else:
         st.warning("🚀 Check back later! Support for this platform is coming soon.")
-
 
