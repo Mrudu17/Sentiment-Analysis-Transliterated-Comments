@@ -24,6 +24,10 @@ TWITTER_API_KEY = os.getenv("TWITTER_API_KEY")
 if not YOUTUBE_API_KEY or not TWITTER_API_KEY:
     st.error("API keys are missing! Please check your .env file.")
 
+# Initialize session_state if it doesn't exist
+if "platform_selected" not in st.session_state:
+    st.session_state.platform_selected = None
+
 # Function to extract video ID from URL
 def extract_video_id(url):
     if "youtube.com/watch?v=" in url:
@@ -160,6 +164,13 @@ def run_analysis(comments):
     </div>
     """, unsafe_allow_html=True)
 
+# Add a platform selection dropdown for users
+platform = st.selectbox("Select Platform", options=["Select", "youtube", "twitter"])
+
+# Save the selected platform to session_state
+if platform != "Select":
+    st.session_state.platform_selected = platform
+
 if st.session_state.platform_selected:
     if st.session_state.platform_selected == "youtube":
         youtube_url = st.text_input("Enter the YouTube video URL:")
@@ -176,4 +187,5 @@ if st.session_state.platform_selected:
             run_analysis(fetch_tweets(tweet_id, TWITTER_API_KEY))
     else:
         st.warning("🚀 Check back later! Support for this platform is coming soon.")
+
 
