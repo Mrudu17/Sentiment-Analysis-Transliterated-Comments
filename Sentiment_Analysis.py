@@ -52,18 +52,32 @@ def fetch_youtube_comments(video_id, api_key):
 
 # Fetch tweets using Twitter API
 def fetch_tweets(tweet_id, api_key):
-    conn = http.client.HTTPSConnection("twitter-api45.p.rapidapi.com")
-    headers = {
-        'x-rapidapi-key': api_key,
-        'x-rapidapi-host': "twitter-api45.p.rapidapi.com"
-    }
-    conn.request("GET", f"/latest_replies.php?id={tweet_id}", headers=headers)
-    res = conn.getresponse()
-    data = res.read()
-    if res.status == 200:
-        tweets = json.loads(data.decode("utf-8"))
-        return [tweet['text'] for tweet in tweets.get('timeline', [])]
-    return []
+    try:
+        conn = http.client.HTTPSConnection("twitter-api45.p.rapidapi.com")
+        headers = {
+            'x-rapidapi-key': api_key,
+            'x-rapidapi-host': "twitter-api45.p.rapidapi.com"
+        }
+        
+        # Ensure headers are properly formatted
+        for key, value in headers.items():
+            if not isinstance(value, str):
+                headers[key] = str(value)
+        
+        # Make the API request
+        conn.request("GET", f"/latest_replies.php?id={tweet_id}", headers=headers)
+        res = conn.getresponse()
+        data = res.read()
+        
+        if res.status == 200:
+            tweets = json.loads(data.decode("utf-8"))
+            return [tweet['text'] for tweet in tweets.get('timeline', [])]
+        else:
+            st.error(f"Failed to fetch tweets: {res.status} {res.reason}")
+            return []
+    except Exception as e:
+        st.error(f"An error occurred while fetching tweets: {e}")
+        return []
 
 # Sentiment Analysis
 def analyze_sentiment(text):
@@ -72,17 +86,18 @@ def analyze_sentiment(text):
     sentiment = 'positive' if polarity > 0 else 'negative' if polarity < 0 else 'neutral'
     return {'sentiment': sentiment, 'polarity': polarity}
 
-# Translate Text using Google Translator
+# Translate Text using Google Translator (with fallback)
 def transliterate_and_translate(text):
     if not text.strip():
-        return None
+        return text  # Return original text if empty
+    
     try:
         translator = Translator()
         translation = translator.translate(text, src='auto', dest='en')
         return translation.text
     except Exception as e:
-        print(f"Error during translation for '{text}': {e}")
-        return None
+        print(f"Translation failed for '{text}': {e}")
+        return text  # Return original text if translation fails
 
 # Streamlit UI: Display profiles immediately at the top-right
 st.markdown("""
@@ -141,19 +156,23 @@ def social_button(icon_path, label, key):
 
 
 with col1:
-    social_button("images/Youtube.jpeg", "YouTube", "youtube")
+    social_button("C:\\Users\\User\\Downloads\\Youtube.jpeg", "YouTube", "youtube")
 with col2:
-    social_button("images/X .jpeg", "⠀⠀X⠀⠀", "twitter")
+    social_button("C:\\Users\\User\\Downloads\\X.jpeg", "⠀⠀X⠀⠀", "twitter")  # The key is still "twitter"
 with col3:
-    social_button("images/Instagram.jpeg", "Instagram", "ig")
+    social_button("C:\\Users\\User\\Downloads\\Instagram.jpeg", "Instagram", "ig")
 with col4:
-    social_button("images/Facebook.jpeg", "Facebook", "fb")
+    social_button("C:\\Users\\User\\Downloads\\Facebook.jpeg", "Facebook", "fb")
 
 if "platform_selected" not in st.session_state:
     st.session_state.platform_selected = None
 
 # Common function to run analysis
 def run_analysis(comments):
+    if not comments:
+        st.warning("No comments found to analyze!")
+        return
+
     total_comments = len(comments)
     sentiment_counts = {'positive': 0, 'negative': 0, 'neutral': 0}
     translations = []
@@ -169,7 +188,7 @@ def run_analysis(comments):
             sentiment_counts[sentiment['sentiment']] += 1
             translations.append({
                 'Original Comment': comment,
-                'Preprocessed Comment': preprocessed_comment,  # Add preprocessed comment to the DataFrame
+                'Preprocessed Comment': preprocessed_comment,
                 'Translated Comment': translated_text,
                 'Sentiment': sentiment['sentiment']
             })
@@ -182,6 +201,12 @@ def run_analysis(comments):
     csv = df.to_csv(index=False).encode('utf-8')
     st.download_button("Download CSV", data=csv, file_name="sentiment_analysis.csv", mime="text/csv")
     
+    # Check if sentiment_counts has valid values
+    if sum(sentiment_counts.values()) == 0:
+        st.warning("No valid sentiment data to display!")
+        return
+    
+    # Plot the pie chart
     fig, ax = plt.subplots(figsize=(2, 2))
     ax.pie(
         sentiment_counts.values(), 
@@ -211,13 +236,21 @@ if st.session_state.platform_selected:
         if st.button("Analyze"):
             video_id = extract_video_id(youtube_url)
             if video_id:
-                run_analysis(fetch_youtube_comments(video_id, os.getenv("YOUTUBE_API_KEY")))
+                comments = fetch_youtube_comments(video_id, os.getenv("YOUTUBE_API_KEY"))
+                if not comments:
+                    st.warning("No comments found for this video!")
+                else:
+                    run_analysis(comments)
             else:
                 st.error("Invalid YouTube URL!")
     elif st.session_state.platform_selected == "twitter":
         tweet_url = st.text_input("Enter the Tweet URL:")
         if st.button("Analyze"):
             tweet_id = extract_tweet_id(tweet_url)
-            run_analysis(fetch_tweets(tweet_id, os.getenv("TWITTER_API_KEY")))
+            tweets = fetch_tweets(tweet_id, os.getenv("TWITTER_API_KEY"))
+            if not tweets:
+                st.warning("No tweets found for this URL!")
+            else:
+                run_analysis(tweets)
     else:
         st.warning("🚀 Check back later! Support for this platform is coming soon.")
