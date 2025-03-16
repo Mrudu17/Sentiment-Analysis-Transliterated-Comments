@@ -106,7 +106,7 @@ def social_button(icon_path, label, key):
 with col1:
     social_button("images/Youtube.jpeg", "YouTube", "youtube")
 with col2:
-    social_button("images/X.jpeg", "X (Twitter)", "twitter")
+    social_button("images/X .jpeg", "X (Twitter)", "twitter")
 with col3:
     social_button("images/Instagram.jpeg", "Instagram", "instagram")
 with col4:
