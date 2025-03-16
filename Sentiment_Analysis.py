@@ -156,13 +156,13 @@ def social_button(icon_path, label, key):
 
 
 with col1:
-    social_button("C:\\Users\\User\\Downloads\\Youtube.jpeg", "YouTube", "youtube")
+    social_button("images\Youtube.jpeg", "YouTube", "youtube")
 with col2:
-    social_button("C:\\Users\\User\\Downloads\\X.jpeg", "⠀⠀X⠀⠀", "twitter")  # The key is still "twitter"
+    social_button("images\X .jpeg", "⠀⠀X⠀⠀", "twitter")  # The key is still "twitter"
 with col3:
-    social_button("C:\\Users\\User\\Downloads\\Instagram.jpeg", "Instagram", "ig")
+    social_button("images\Instagram.jpeg", "Instagram", "ig")
 with col4:
-    social_button("C:\\Users\\User\\Downloads\\Facebook.jpeg", "Facebook", "fb")
+    social_button("images\Facebook.jpeg", "Facebook", "fb")
 
 if "platform_selected" not in st.session_state:
     st.session_state.platform_selected = None
