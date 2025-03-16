@@ -10,20 +10,23 @@ import http.client
 import json
 import requests
 from dotenv import load_dotenv
-import os 
+import os
 
-load_dotenv()
+# Load environment variables explicitly
+load_dotenv(dotenv_path=".env")
+
+# Fetch API keys
 YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
 TWITTER_API_KEY = os.getenv("TWITTER_API_KEY")
 
+# Check if API keys are available
 if not YOUTUBE_API_KEY or not TWITTER_API_KEY:
-    st.error("API keys are missing! Please check your .env file!2")
+    st.error("⚠️ API keys are missing! Please check your `.env` file.")
 
-# Function to extract video ID from URL
+# Function to extract video ID from YouTube URL
 def extract_video_id(url):
-    if "youtube.com/watch?v=" in url:
-        return url.split("v=")[1].split("&")[0]
-    return None
+    match = re.search(r"(?<=v=)[^&]+", url)
+    return match.group(0) if match else None
 
 # Function to extract tweet ID from URL
 def extract_tweet_id(url):
@@ -34,10 +37,8 @@ def preprocess_comment(comment):
     comment = html.unescape(comment)
     comment = re.sub(r'http[s]?://\S+|www\.\S+', '', comment)  # Remove URLs
     comment = re.sub(r'<.*?>', '', comment)  # Remove HTML tags
-    comment = re.sub(r'@\w+', '', comment)  # Remove Twitter handles (e.g., @username)
-    comment = re.sub(r'[^\x00-\x7F]+', '', comment)  # Remove non-ASCII characters (including emojis)
-    return ' '.join(comment.split())  # Remove extra spaces (but keep Telugu)
-
+    comment = re.sub(r'@\w+', '', comment)  # Remove Twitter handles
+    return ' '.join(comment.split())  # Remove extra spaces
 
 # Fetch YouTube comments
 def fetch_youtube_comments(video_id, api_key):
@@ -60,7 +61,7 @@ def fetch_youtube_comments(video_id, api_key):
 def fetch_tweets(tweet_id, api_key):
     conn = http.client.HTTPSConnection("twitter-api45.p.rapidapi.com")
     headers = {
-        'x-rapidapi-key': "68acfccf96msh43988501728891ep174caejsna4f16e4418ad",
+        'x-rapidapi-key': api_key,
         'x-rapidapi-host': "twitter-api45.p.rapidapi.com"
     }
     conn.request("GET", f"/latest_replies.php?id={tweet_id}", headers=headers)
@@ -87,35 +88,14 @@ def transliterate_and_translate(text):
         translation = translator.translate(text, src='auto', dest='en')
         return translation.text
     except Exception as e:
-        print(f"Error during translation for '{text}': {e}")
+        st.warning(f"⚠️ Translation error: {e}")
         return None
-st.markdown("""
-    <div style="position: fixed; bottom: 10px; right: 10px; background-color: rgba(0, 0, 0, 0.5); padding: 10px; border-radius: 8px; width: auto;">
-        <h3 style="color: white; font-size: 18px; font-weight: bold; text-align: center;">Project By:</h3>
-        <p style="color: white; font-size: 14px; line-height: 1.6;">
-            <strong>S.K.Mruduvani</strong><br>
-            GitHub <a href="https://github.com/Mrudu17" target="_blank">
-                <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" width="18" height="18" style="vertical-align: middle;">
-            </a><br>
-            LinkedIn <a href="https://www.linkedin.com/in/s-k-mruduvani" target="_blank">
-                <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="18" height="18" style="vertical-align: middle;">
-            </a><br><br>
-            <strong>Kataru Shreya</strong><br>
-            GitHub <a href="https://github.com/KataruShreya" target="_blank">
-                <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" width="18" height="18" style="vertical-align: middle;">
-            </a><br>
-            LinkedIn <a href="https://www.linkedin.com/in/shreyakataru" target="_blank">
-                <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="18" height="18" style="vertical-align: middle;">
-            </a><br>
-        </p>
-    </div>
-""", unsafe_allow_html=True)
 
 # Streamlit UI
-st.markdown("<h1 style='text-align: center;'>Sentiment Analysis of Transliterated Social Media Comments</h1>", unsafe_allow_html=True)
-
+st.markdown("<h1 style='text-align: center;'>Sentiment Analysis of Social Media Comments</h1>", unsafe_allow_html=True)
 st.markdown("<h4 style='text-align: center;'>Select a platform to analyze comments</h4>", unsafe_allow_html=True)
 
+# Social media platform selection
 col1, col2, col3, col4 = st.columns(4)
 
 def social_button(icon_path, label, key):
@@ -126,27 +106,32 @@ def social_button(icon_path, label, key):
 with col1:
     social_button("images/Youtube.jpeg", "YouTube", "youtube")
 with col2:
-    social_button("images/X .jpeg", "⠀⠀X⠀⠀", "twitter")
+    social_button("images/X.jpeg", "X (Twitter)", "twitter")
 with col3:
-    social_button("images/Instagram.jpeg", "Instagram", "ig")
+    social_button("images/Instagram.jpeg", "Instagram", "instagram")
 with col4:
-    social_button("images/Facebook.jpeg", "Facebook", "fb")
+    social_button("images/Facebook.jpeg", "Facebook", "facebook")
 
+# Initialize platform selection state
 if "platform_selected" not in st.session_state:
     st.session_state.platform_selected = None
 
 # Common function to run analysis
 def run_analysis(comments):
+    if not comments:
+        st.warning("⚠️ No comments found!")
+        return
+
     total_comments = len(comments)
     sentiment_counts = {'positive': 0, 'negative': 0, 'neutral': 0}
     translations = []
-    
+
     progress_bar = st.progress(0)
-    
+
     for i, comment in enumerate(comments):
-        preprocessed_comment = preprocess_comment(comment)  # Preprocess comment
-        translated_text = transliterate_and_translate(preprocessed_comment)  # Translate preprocessed comment
-        
+        preprocessed_comment = preprocess_comment(comment)
+        translated_text = transliterate_and_translate(preprocessed_comment)
+
         if translated_text:
             sentiment = analyze_sentiment(translated_text)
             sentiment_counts[sentiment['sentiment']] += 1
@@ -156,52 +141,54 @@ def run_analysis(comments):
                 'Translated Comment': translated_text,
                 'Sentiment': sentiment['sentiment']
             })
+
         progress_bar.progress(min(int(((i + 1) / total_comments) * 100), 100))
-    
+
     df = pd.DataFrame(translations)
-    st.success("Analysis complete!")
+    st.success("✅ Analysis complete!")
     st.dataframe(df)
-    
+
+    # Download CSV button
     csv = df.to_csv(index=False).encode('utf-8')
-    st.download_button("Download CSV", data=csv, file_name="sentiment_analysis.csv", mime="text/csv")
-    
-    fig, ax = plt.subplots(figsize=(2, 2))
+    st.download_button("📥 Download CSV", data=csv, file_name="sentiment_analysis.csv", mime="text/csv")
+
+    # Sentiment Pie Chart
+    fig, ax = plt.subplots(figsize=(4, 4))
     ax.pie(
-        sentiment_counts.values(), 
-        labels=sentiment_counts.keys(), 
-        autopct='%1.1f%%', 
-        colors= ['green', 'red', 'gray'],
-        textprops={'color': 'white','fontsize': 5}
+        sentiment_counts.values(),
+        labels=sentiment_counts.keys(),
+        autopct='%1.1f%%',
+        colors=['green', 'red', 'gray'],
+        textprops={'fontsize': 10}
     )
-    ax.set_title("Sentiment Distribution", fontsize=10, fontweight='bold',color='white')
-    fig.patch.set_facecolor("#0E1117")
-    ax.set_facecolor("#0E1117")
+    ax.set_title("Sentiment Distribution", fontsize=12, fontweight='bold')
     st.pyplot(fig)
-    
+
+    # Display overall sentiment
     most_common_sentiment = max(sentiment_counts, key=sentiment_counts.get)
     sentiment_percentage = (sentiment_counts[most_common_sentiment] / sum(sentiment_counts.values())) * 100
-    
+
     st.markdown(f"""
     <div style='text-align: center;'>
-        <h2 style="color: white; font-size: 30px; font-weight: bold;">Overall Sentiment</h2>
-        <h2 style="color: white; font-size: 25px;">{most_common_sentiment.capitalize()} ({sentiment_percentage:.2f}%)</h2>
+        <h2 style="color: black; font-size: 24px; font-weight: bold;">Overall Sentiment</h2>
+        <h3 style="color: black; font-size: 20px;">{most_common_sentiment.capitalize()} ({sentiment_percentage:.2f}%)</h3>
     </div>
     """, unsafe_allow_html=True)
-    
 
+# Handle platform selection and input
 if st.session_state.platform_selected:
     if st.session_state.platform_selected == "youtube":
-        youtube_url = st.text_input("Enter the YouTube video URL:")
+        youtube_url = st.text_input("🎥 Enter YouTube video URL:")
         if st.button("Analyze"):
             video_id = extract_video_id(youtube_url)
             if video_id:
-                run_analysis(fetch_youtube_comments(video_id,YOUTUBE_API_KEY))
+                run_analysis(fetch_youtube_comments(video_id, YOUTUBE_API_KEY))
             else:
-                st.error("Invalid YouTube URL!")
+                st.error("❌ Invalid YouTube URL!")
     elif st.session_state.platform_selected == "twitter":
-        tweet_url = st.text_input("Enter the Tweet URL:")
+        tweet_url = st.text_input("🐦 Enter Tweet URL:")
         if st.button("Analyze"):
             tweet_id = extract_tweet_id(tweet_url)
-            run_analysis(fetch_tweets(tweet_id,TWITTER_API_KEY))
+            run_analysis(fetch_tweets(tweet_id, TWITTER_API_KEY))
     else:
-        st.warning("🚀 Check back later! Support for this platform is coming soon.")
+        st.warning("🚀 Support for this platform is coming soon!")
