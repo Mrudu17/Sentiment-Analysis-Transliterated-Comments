@@ -9,12 +9,9 @@ from googletrans import Translator
 import http.client
 import json
 import requests
-from dotenv import load_dotenv
-import os 
 
-load_dotenv()
-YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
-TWITTER_API_KEY = os.getenv("TWITTER_API_KEY")
+TWITTER_API_KEY = st.secrets["TWITTER_API_KEY"]
+YOUTUBE_API_KEY = st.secrets["YOUTUBE_API_KEY"]
 
 if not YOUTUBE_API_KEY or not TWITTER_API_KEY:
     st.error("API keys are missing! Please check your .env file!2")
@@ -124,13 +121,13 @@ def social_button(icon_path, label, key):
         st.session_state.platform_selected = key
 
 with col1:
-    social_button("C:\\Users\\User\\OneDrive\\Desktop\\Sentiment-Analysis-Transliterated-Comments\\images\\Youtube.jpeg", "YouTube", "youtube")
+    social_button("images/youtube.png", "YouTube", "youtube")
 with col2:
-    social_button("C:\\Users\\User\\OneDrive\\Desktop\\Sentiment-Analysis-Transliterated-Comments\\images\\X .jpeg", "⠀⠀X⠀⠀", "twitter")
+    social_button("images/X.png", "⠀⠀X⠀⠀", "twitter")
 with col3:
-    social_button("C:\\Users\\User\\OneDrive\\Desktop\\Sentiment-Analysis-Transliterated-Comments\\images\\Instagram.jpeg", "Instagram", "ig")
+    social_button("images/instagram.png", "instagram", "ig")
 with col4:
-    social_button("C:\\Users\\User\\OneDrive\\Desktop\\Sentiment-Analysis-Transliterated-Comments\\images\\Facebook.jpeg", "Facebook", "fb")
+    social_button("images/facebook.png", "facebook", "fb")
 
 if "platform_selected" not in st.session_state:
     st.session_state.platform_selected = None
