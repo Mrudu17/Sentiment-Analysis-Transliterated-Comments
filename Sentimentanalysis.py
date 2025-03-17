@@ -34,6 +34,7 @@ def preprocess_comment(comment):
     comment = re.sub(r'@\w+', '', comment)  # Remove Twitter handles (e.g., @username)
     comment = re.sub(r'[^\x00-\x7F]+', '', comment)  # Remove non-ASCII characters (including emojis)
     comment = re.sub(r'[^\x00-\x7F\u0C00-\u0C7F]+', '', comment)  # Preserve Telugu characters
+    comment = re.sub(r'[^\x00-\x7F\u0900-\u097F\u0C00-\u0C7F]+', '', comment)  # Preserve Hindi and Telugu characters
     return ' '.join(comment.split())  # Remove extra spaces (but keep Telugu)
 
 
@@ -41,27 +42,18 @@ def preprocess_comment(comment):
 def fetch_youtube_comments(video_id, api_key):
     youtube = build('youtube', 'v3', developerKey=api_key)
     comments = []
-    try:
-        request = youtube.commentThreads().list(
-            part="snippet",
-            videoId=video_id,
-            textFormat="plainText",
-            maxResults=100
-        )
-        while request:
-            results = request.execute()
-            for item in results.get('items', []):
-                comments.append(item['snippet']['topLevelComment']['snippet']['textDisplay'])
-            request = youtube.commentThreads().list_next(request, results)
-    except Exception as e:
-        st.error(f"Error fetching YouTube comments: {e}")
-        return []
-    
-    if not comments:
-        st.warning("No comments retrieved. The video might have comments disabled.")
-    
+    request = youtube.commentThreads().list(
+        part="snippet",
+        videoId=video_id,
+        textFormat="plainText",
+        maxResults=100
+    )
+    while request:
+        results = request.execute()
+        for item in results['items']:
+            comments.append(item['snippet']['topLevelComment']['snippet']['textDisplay'])
+        request = youtube.commentThreads().list_next(request, results)
     return comments
-
 
 # Fetch tweets using Twitter API
 def fetch_tweets(tweet_id, api_key):
