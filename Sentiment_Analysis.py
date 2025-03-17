@@ -10,14 +10,10 @@ import http.client
 import json
 import requests
 from dotenv import load_dotenv
-import os 
+import os
 
+# Load environment variables from .env file
 load_dotenv()
-YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
-TWITTER_API_KEY = os.getenv("TWITTER_API_KEY")
-
-if not YOUTUBE_API_KEY or not TWITTER_API_KEY:
-    st.error("API keys are missing! Please check your .env file!2")
 
 # Function to extract video ID from URL
 def extract_video_id(url):
@@ -35,9 +31,7 @@ def preprocess_comment(comment):
     comment = re.sub(r'http[s]?://\S+|www\.\S+', '', comment)  # Remove URLs
     comment = re.sub(r'<.*?>', '', comment)  # Remove HTML tags
     comment = re.sub(r'@\w+', '', comment)  # Remove Twitter handles (e.g., @username)
-    comment = re.sub(r'[^\x00-\x7F]+', '', comment)  # Remove non-ASCII characters (including emojis)
     return ' '.join(comment.split())  # Remove extra spaces (but keep Telugu)
-
 
 # Fetch YouTube comments
 def fetch_youtube_comments(video_id, api_key):
@@ -60,7 +54,7 @@ def fetch_youtube_comments(video_id, api_key):
 def fetch_tweets(tweet_id, api_key):
     conn = http.client.HTTPSConnection("twitter-api45.p.rapidapi.com")
     headers = {
-        'x-rapidapi-key': "68acfccf96msh43988501728891ep174caejsna4f16e4418ad",
+        'x-rapidapi-key': api_key,
         'x-rapidapi-host': "twitter-api45.p.rapidapi.com"
     }
     conn.request("GET", f"/latest_replies.php?id={tweet_id}", headers=headers)
@@ -89,6 +83,8 @@ def transliterate_and_translate(text):
     except Exception as e:
         print(f"Error during translation for '{text}': {e}")
         return None
+
+# Streamlit UI: Display profiles immediately at the top-right
 st.markdown("""
     <div style="position: fixed; bottom: 10px; right: 10px; background-color: rgba(0, 0, 0, 0.5); padding: 10px; border-radius: 8px; width: auto;">
         <h3 style="color: white; font-size: 18px; font-weight: bold; text-align: center;">Project By:</h3>
@@ -111,7 +107,7 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# Streamlit UI
+# Streamlit UI: Title and Platform Selection
 st.markdown("<h1 style='text-align: center;'>Sentiment Analysis of Transliterated Social Media Comments</h1>", unsafe_allow_html=True)
 
 st.markdown("<h4 style='text-align: center;'>Select a platform to analyze comments</h4>", unsafe_allow_html=True)
@@ -120,17 +116,38 @@ col1, col2, col3, col4 = st.columns(4)
 
 def social_button(icon_path, label, key):
     st.image(icon_path, width=50)
+    
+    # Updated button style with grey background and black text on hover
+    button_style = """
+    <style>
+    .stButton > button {{
+        background-color: #B0B0B0; /* Professional grey */
+        color: black; /* Black text color */
+        border: none;
+        border-radius: 5px;
+        font-size: 14px;
+        font-weight: bold;
+    }}
+    .stButton > button:hover {{
+        background-color: #B0B0B0; /* Keep grey background on hover */
+        color: black; /* Keep text color black on hover */
+    }}
+    </style>
+    """
+    st.markdown(button_style, unsafe_allow_html=True)
+    
     if st.button(label, key=key):
-        st.session_state.platform_selected = key
+        st.session_state.platform_selected = key  # Store the key (not label)
+
 
 with col1:
-    social_button("C:\\Users\\Shreya\\Downloads\\Sentiment analysis\\images\\youtube.png", "YouTube", "youtube")
+    social_button("C:\\Users\\User\\OneDrive\\Desktop\\Sentiment-Analysis-Transliterated-Comments\\images\\Youtube.jpeg", "YouTube", "youtube")
 with col2:
-    social_button("C:\\Users\\Shreya\\Downloads\\Sentiment analysis\\images\\X.png", "⠀⠀X⠀⠀", "twitter")
+    social_button("C:\\Users\\User\\OneDrive\\Desktop\\Sentiment-Analysis-Transliterated-Comments\\images\\X .jpeg", "⠀⠀X⠀⠀", "twitter")
 with col3:
-    social_button("C:\\Users\\Shreya\\Downloads\\Sentiment analysis\\images\\Instagram.png", "Instagram", "ig")
+    social_button("C:\\Users\\User\\OneDrive\\Desktop\\Sentiment-Analysis-Transliterated-Comments\\images\\Instagram.jpeg", "Instagram", "ig")
 with col4:
-    social_button("C:\\Users\\Shreya\\Downloads\\Sentiment analysis\\images\\Facebook.png", "Facebook", "fb")
+    social_button("C:\\Users\\User\\OneDrive\\Desktop\\Sentiment-Analysis-Transliterated-Comments\\images\\Facebook.jpeg", "Facebook", "fb")
 
 if "platform_selected" not in st.session_state:
     st.session_state.platform_selected = None
@@ -144,15 +161,15 @@ def run_analysis(comments):
     progress_bar = st.progress(0)
     
     for i, comment in enumerate(comments):
-        preprocessed_comment = preprocess_comment(comment)  # Preprocess comment
-        translated_text = transliterate_and_translate(preprocessed_comment)  # Translate preprocessed comment
+        preprocessed_comment = preprocess_comment(comment)  # Preprocess the comment
+        translated_text = transliterate_and_translate(preprocessed_comment)
         
         if translated_text:
             sentiment = analyze_sentiment(translated_text)
             sentiment_counts[sentiment['sentiment']] += 1
             translations.append({
                 'Original Comment': comment,
-                'Preprocessed Comment': preprocessed_comment,
+                'Preprocessed Comment': preprocessed_comment,  # Add preprocessed comment to the DataFrame
                 'Translated Comment': translated_text,
                 'Sentiment': sentiment['sentiment']
             })
@@ -170,10 +187,10 @@ def run_analysis(comments):
         sentiment_counts.values(), 
         labels=sentiment_counts.keys(), 
         autopct='%1.1f%%', 
-        colors= ['green', 'red', 'gray'],
-        textprops={'color': 'white','fontsize': 5}
+        colors=['green', 'red', 'gray'],
+        textprops={'color': 'white'}
     )
-    ax.set_title("Sentiment Distribution", fontsize=10, fontweight='bold',color='white')
+    ax.set_title("Sentiment Distribution", fontsize=8, fontweight='bold', color='white')
     fig.patch.set_facecolor("#0E1117")
     ax.set_facecolor("#0E1117")
     st.pyplot(fig)
@@ -187,7 +204,6 @@ def run_analysis(comments):
         <h2 style="color: white; font-size: 25px;">{most_common_sentiment.capitalize()} ({sentiment_percentage:.2f}%)</h2>
     </div>
     """, unsafe_allow_html=True)
-    
 
 if st.session_state.platform_selected:
     if st.session_state.platform_selected == "youtube":
@@ -195,13 +211,13 @@ if st.session_state.platform_selected:
         if st.button("Analyze"):
             video_id = extract_video_id(youtube_url)
             if video_id:
-                run_analysis(fetch_youtube_comments(video_id,YOUTUBE_API_KEY))
+                run_analysis(fetch_youtube_comments(video_id, os.getenv("YOUTUBE_API_KEY")))
             else:
                 st.error("Invalid YouTube URL!")
     elif st.session_state.platform_selected == "twitter":
         tweet_url = st.text_input("Enter the Tweet URL:")
         if st.button("Analyze"):
             tweet_id = extract_tweet_id(tweet_url)
-            run_analysis(fetch_tweets(tweet_id,TWITTER_API_KEY))
+            run_analysis(fetch_tweets(tweet_id, os.getenv("TWITTER_API_KEY")))
     else:
         st.warning("🚀 Check back later! Support for this platform is coming soon.")
