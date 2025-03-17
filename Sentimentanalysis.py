@@ -33,6 +33,7 @@ def preprocess_comment(comment):
     comment = re.sub(r'<.*?>', '', comment)  # Remove HTML tags
     comment = re.sub(r'@\w+', '', comment)  # Remove Twitter handles (e.g., @username)
     comment = re.sub(r'[^\x00-\x7F]+', '', comment)  # Remove non-ASCII characters (including emojis)
+    comment = re.sub(r'[^\x00-\x7F\u0900-\u097F\u0C00-\u0C7F]+', '', comment)  # Preserve Hindi and Telugu characters
     return ' '.join(comment.split())  # Remove extra spaces (but keep Telugu)
 
 
