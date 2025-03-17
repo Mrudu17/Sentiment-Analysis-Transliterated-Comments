@@ -41,18 +41,27 @@ def preprocess_comment(comment):
 def fetch_youtube_comments(video_id, api_key):
     youtube = build('youtube', 'v3', developerKey=api_key)
     comments = []
-    request = youtube.commentThreads().list(
-        part="snippet",
-        videoId=video_id,
-        textFormat="plainText",
-        maxResults=100
-    )
-    while request:
-        results = request.execute()
-        for item in results['items']:
-            comments.append(item['snippet']['topLevelComment']['snippet']['textDisplay'])
-        request = youtube.commentThreads().list_next(request, results)
+    try:
+        request = youtube.commentThreads().list(
+            part="snippet",
+            videoId=video_id,
+            textFormat="plainText",
+            maxResults=100
+        )
+        while request:
+            results = request.execute()
+            for item in results.get('items', []):
+                comments.append(item['snippet']['topLevelComment']['snippet']['textDisplay'])
+            request = youtube.commentThreads().list_next(request, results)
+    except Exception as e:
+        st.error(f"Error fetching YouTube comments: {e}")
+        return []
+    
+    if not comments:
+        st.warning("No comments retrieved. The video might have comments disabled.")
+    
     return comments
+
 
 # Fetch tweets using Twitter API
 def fetch_tweets(tweet_id, api_key):
