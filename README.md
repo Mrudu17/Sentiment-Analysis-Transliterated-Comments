@@ -1,4 +1,4 @@
-# 🌟 **Sentiment Analysis of Transliterated Social Media Comments** 🌟
+# 🌟**Sentiment Analysis of Transliterated Social Media Comments**🌟 
 
 ## 🧑‍💻 **Developed by:**
 - **S.K. Mruduvani**  |  [GitHub Profile](https://github.com/Mrudu17) | [LinkedIn Profile](https://www.linkedin.com/in/s-k-mruduvani)
