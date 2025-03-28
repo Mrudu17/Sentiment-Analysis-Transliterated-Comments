@@ -59,7 +59,7 @@ Once the analysis is complete, the results can be downloaded in a **CSV** format
 
 ---
 
-## How to Create YouTube & Twitter API from RapidAPI and Use in Streamlit
+## 📑How to Create YouTube & Twitter API from RapidAPI and Use in Streamlit
 
 ### Step 1: Create YouTube API Key from Google Cloud
 
