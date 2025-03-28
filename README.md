@@ -59,13 +59,6 @@ Once the analysis is complete, the results can be downloaded in a **CSV** format
 
 ---
 
-## 📈 **Use Case Scenarios**
-
-- **Content Creators**: Get insights into how your audience is reacting to your YouTube videos or Twitter posts.
-- **Marketing Teams**: Monitor customer feedback on social media, and identify the overall sentiment toward your brand.
-- **Researchers**: Analyze public opinion on specific topics by collecting comments from social media.
-
----
 ## How to Create YouTube & Twitter API from RapidAPI and Use in Streamlit
 
 ### Step 1: Create YouTube API Key from Google Cloud
@@ -116,11 +109,16 @@ streamlit run app.py
 ![image](https://github.com/user-attachments/assets/f01ce591-73c5-43b3-b570-d7f79efaacb2)
 
 ---
-## VISITS
-![Visitor Count](https://komarev.com/ghpvc/?username=Mrudu17&style=flat-square)
+
+## 📈 **Use Case Scenarios**
+
+- **Content Creators**: Get insights into how your audience is reacting to your YouTube videos or Twitter posts.
+- **Marketing Teams**: Monitor customer feedback on social media, and identify the overall sentiment toward your brand.
+- **Researchers**: Analyze public opinion on specific topics by collecting comments from social media.
 
 ---
-
+## VISITS
+![Visitor Count](https://komarev.com/ghpvc/?username=Mrudu17&style=flat-square)
 
 
 
