@@ -121,8 +121,11 @@ streamlit run app.py
 ![image](https://github.com/user-attachments/assets/43245899-2d27-4cfd-98fe-76fed7f58129)
 ![image](https://github.com/user-attachments/assets/f01ce591-73c5-43b3-b570-d7f79efaacb2)
 
+---
+## VISITS
+![Visitor Count](https://komarev.com/ghpvc/?username=Mrudu17&style=flat-square)
 
-
+---
 
 
 
