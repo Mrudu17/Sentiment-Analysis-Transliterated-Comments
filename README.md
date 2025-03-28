@@ -68,7 +68,7 @@ Once the analysis is complete, the results can be downloaded in a **CSV** format
 ---
 ## How to Create YouTube & Twitter API from RapidAPI and Use in Streamlit
 
-# Step 1: Create YouTube API Key from Google Cloud
+### Step 1: Create YouTube API Key from Google Cloud
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/) and sign in.
 2. Click **Select a Project** → **New Project** → Give it a name.
@@ -78,7 +78,7 @@ Once the analysis is complete, the results can be downloaded in a **CSV** format
 6. Click **Create Credentials** → **API Key**.
 7. Copy the generated API Key.
 
-# Step 2: Create Twitter API Key from RapidAPI
+### Step 2: Create Twitter API Key from RapidAPI
 
 1. Go to [RapidAPI](https://rapidapi.com/) and sign in.
 2. Search for **Twitter API** in the RapidAPI marketplace.
@@ -86,7 +86,7 @@ Once the analysis is complete, the results can be downloaded in a **CSV** format
 4. Navigate to the **Endpoints** section to test API requests.
 5. Copy the **API Key** from the **Header Parameters** section.
 
-# Step 3: Create a `secrets.toml` File in Streamlit
+### Step 3: Create a `secrets.toml` File in Streamlit
 
 1. Inside your Streamlit project, create a `.streamlit` folder.
 2. Inside `.streamlit`, create a `secrets.toml` file.
@@ -98,14 +98,14 @@ YOUTUBE_API_KEY = "Your_Youtube_API_Key"
 TWITTER_API_KEY = "Your_Twitter_API_Key"
 ```
 
-# Step 5: Run .py file with Streamlit App
+### Step 5: Run .py file with Streamlit App
 
 ```bash
 streamlit run app.py
 ```
 
 ---
-## Now, your Streamlit app can securely access and use the YouTube and Twitter APIs!
+### Now, your Streamlit app can securely access and use the YouTube and Twitter APIs!
 ---
 
 ## OUTPUTS
