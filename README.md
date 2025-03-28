@@ -94,18 +94,12 @@ Once the analysis is complete, the results can be downloaded in a **CSV** format
 
 ```toml
 # .streamlit/secrets.toml
-Youtube_API_Key = "Your_Youtube_API_Key"
-Twitter_API_Key = "Your_Twitter_API_Key"
+YOUTUBE_API_KEY = "Your_Youtube_API_Key"
+TWITTER_API_KEY = "Your_Twitter_API_Key"
 ```
 
-# Step 4: Clone the repository
+# Step 5: Run .py file with Streamlit App
 
-   ```bash
-   git clone https://github.com/Mrudu17/Sentiment-Analysis-Social-Media-Comments.git
-   cd Sentiment-Analysis-Social-Media-Comments
-```
-
-# Step 5: Run Streamlit App
 ```bash
 streamlit run app.py
 ```
