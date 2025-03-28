@@ -66,6 +66,41 @@ Once the analysis is complete, the results can be downloaded in a **CSV** format
 - **Researchers**: Analyze public opinion on specific topics by collecting comments from social media.
 
 ---
+# How to Create YouTube & Twitter API from RapidAPI and Use in Streamlit
+
+## Step 1: Create API Keys from RapidAPI
+
+1. Go to [RapidAPI](https://rapidapi.com/) and sign in or create an account.
+2. Search for the **YouTube API** and **Twitter API** in the RapidAPI marketplace.
+3. Select an API and subscribe to a pricing plan (free or paid).
+4. Navigate to the **Endpoints** section to test API requests.
+5. Copy the **API Key** from the **Header Parameters** section.
+
+## Step 2: Install Required Libraries
+```bash
+pip install streamlit requests
+```
+
+## Step 3: Create a `secrets.toml` File in Streamlit
+
+1. Inside your Streamlit project, create a `.streamlit` folder.
+2. Inside `.streamlit`, create a `secrets.toml` file.
+3. Add the API keys to the `secrets.toml` file:
+
+```toml
+# .streamlit/secrets.toml
+Youtube_API_Key = "Your_Youtube_API_Key"
+Twitter_API_Key = "Your_Twitter_API_Key"
+```
+
+## Step 4: Run Streamlit App
+```bash
+streamlit run app.py
+```
+
+Now, your Streamlit app can securely access and use the YouTube and Twitter APIs!
+
+---
 
 ## 🔑 **Setup & Installation**
 
